@@ -1254,7 +1254,7 @@ set(MAGNUM_DEPLOY_PREFIX "."
         CACHE STRING "Prefix where to put final application executables")
 
 include(${CORRADE_LIB_SUFFIX_MODULE})
-set(MAGNUM_BINARY_INSTALL_DIR bin)
+set(MAGNUM_BINARY_INSTALL_DIR ../bin)
 set(MAGNUM_LIBRARY_INSTALL_DIR lib${LIB_SUFFIX})
 set(MAGNUM_DATA_INSTALL_DIR share/magnum)
 set(MAGNUM_INCLUDE_INSTALL_DIR include/Magnum)
