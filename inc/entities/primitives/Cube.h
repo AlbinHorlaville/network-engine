@@ -11,10 +11,14 @@
 class Cube: public GameObject {
 public:
     Cube() = delete;
-    Cube(std::string name, Object3D *parent, btDynamicsWorld &bWorld);
-    Cube(Object3D *parent, btDynamicsWorld &bWorld);
-    Cube(Object3D *parent, btCollisionShape *shape, btDynamicsWorld &bWorld);
-    ~Cube(){}
+    Cube(std::string name, Object3D *parent, btVector3 scale, btDynamicsWorld &bWorld);
+    Cube(Object3D *parent, btVector3 scale, btDynamicsWorld &bWorld);
+    ~Cube() = default;
+
+    void setScale(btVector3 newScale);
+private:
+    btBoxShape _collisionShape;
+    btVector3 _scale;
 };
 
 

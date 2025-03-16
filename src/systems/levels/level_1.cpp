@@ -76,7 +76,7 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
     for(Int i = 0; i != 5; ++i) {
         for(Int j = 0; j != 5; ++j) {
             for(Int k = 0; k != 5; ++k) {
-                auto* o = new Cube(&_scene, &_bBoxShape, *(_pWorld->_bWorld));
+                auto* o = new Cube(&_scene, {0.5f, 0.5f, 0.5f},*(_pWorld->_bWorld));
                 _objects.push_back(o);
                 //auto* o = new RigidBody{&_scene, 1.0f, &_bBoxShape, *(_pWorld->_bWorld)};
                 o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
@@ -186,7 +186,7 @@ void Level_1::pointerPressEvent(PointerEvent& event) {
     const Vector2 clickPoint = Vector2::yScale(-1.0f)*(position/Vector2{framebufferSize()} - Vector2{0.5f})*_camera->projectionSize();
     const Vector3 direction = (_cameraObject->absoluteTransformation().rotationScaling()*Vector3{clickPoint, -1.0f}).normalized();
 
-    auto* projectile = new Sphere(&_scene, &_bSphereShape, *(_pWorld->_bWorld));
+    auto* projectile = new Sphere(&_scene, 0.25f, *(_pWorld->_bWorld));
     _objects.push_back(projectile);
     /*
     auto* object = new RigidBody{

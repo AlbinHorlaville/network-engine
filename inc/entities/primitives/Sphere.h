@@ -11,12 +11,15 @@
 class Sphere: public GameObject {
 public:
     Sphere() = delete;
-    Sphere(std::string name, Object3D *parent, btDynamicsWorld &bWorld);
-    Sphere(Object3D *parent, btDynamicsWorld &bWorld);
-    Sphere(Object3D *parent, btCollisionShape *shape, btDynamicsWorld &bWorld);
-    ~Sphere(){};
+    Sphere(std::string name, Object3D *parent, float scale, btDynamicsWorld &bWorld);
+    Sphere(Object3D *parent, float scale, btDynamicsWorld &bWorld);
+    ~Sphere() = default;
+
+    void setScale(float newScale);
+
+private:
+    float _scale;
+    btSphereShape _collisionShape;
 };
-
-
 
 #endif //SPHERE_H

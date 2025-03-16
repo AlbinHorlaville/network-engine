@@ -4,16 +4,26 @@
 
 #include "entities/primitives/Sphere.h"
 
-Sphere::Sphere(std::string name, Object3D* parent, btDynamicsWorld& bWorld): GameObject(std::move(name)) {
-    btSphereShape bShape{0.25f};
-    this->_rigidBody = new RigidBody{parent, 1, &bShape, bWorld};
+Sphere::Sphere(std::string name, Object3D* parent, float scale, btDynamicsWorld& bWorld):
+GameObject(std::move(name)), _collisionShape(btSphereShape{scale}) {
+    _scale = scale;
+    this->_rigidBody = new RigidBody{parent, 5, &_collisionShape, bWorld};
 }
 
-Sphere::Sphere(Object3D* parent, btDynamicsWorld& bWorld): GameObject("Sphere") {
-    btSphereShape bShape{0.25f};
-    this->_rigidBody = new RigidBody{parent, 1, &bShape, bWorld};
+Sphere::Sphere(Object3D* parent, const float scale, btDynamicsWorld& bWorld):
+GameObject("Sphere"), _collisionShape(btSphereShape{scale}) {
+    _scale = scale;
+    this->_rigidBody = new RigidBody{parent, 5, &_collisionShape, bWorld};
 }
 
-Sphere::Sphere(Object3D* parent, btCollisionShape *shape, btDynamicsWorld& bWorld): GameObject("Sphere") {
-    this->_rigidBody = new RigidBody{parent, 1, shape, bWorld};
+void Sphere::setScale(const float newScale) {
+    _scale = newScale;
+
+    // Remove old shape and add a new one using unique_ptr
+    _collisionShape = btSphereShape{_scale};
+    this->_rigidBody->rigidBody().setCollisionShape(&_collisionShape);  // Get the raw pointer for the RigidBody
+
+    // Sync pose to ensure the new shape is aligned correctly with the existing body
+    this->_rigidBody->syncPose();
 }
+
