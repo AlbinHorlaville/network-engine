@@ -18,8 +18,8 @@ find_package(Bullet REQUIRED Dynamics)
 
 set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 
-add_executable(MagnumBootstrap
-        src/main.cpp)
+file(GLOB_RECURSE SOURCES src/*.cpp)  # Find all .cpp files in src/
+add_executable(MagnumBootstrap ${SOURCES})
 
 target_include_directories(MagnumBootstrap PUBLIC inc)
 set_property(TARGET MagnumBootstrap PROPERTY CXX_STANDARD 20)
