@@ -13,6 +13,7 @@ public:
     Cube() = delete;
     Cube(std::string name, Object3D *parent, btDynamicsWorld &bWorld);
     Cube(Object3D *parent, btDynamicsWorld &bWorld);
+    Cube(Object3D *parent, btCollisionShape *shape, btDynamicsWorld &bWorld);
     ~Cube(){}
 };
 

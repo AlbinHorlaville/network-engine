@@ -13,6 +13,7 @@ public:
     Sphere() = delete;
     Sphere(std::string name, Object3D *parent, btDynamicsWorld &bWorld);
     Sphere(Object3D *parent, btDynamicsWorld &bWorld);
+    Sphere(Object3D *parent, btCollisionShape *shape, btDynamicsWorld &bWorld);
     ~Sphere(){};
 };
 

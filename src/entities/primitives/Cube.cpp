@@ -15,3 +15,7 @@ Cube::Cube(Object3D* parent, btDynamicsWorld& bWorld): GameObject("Cube") {
     btBoxShape bShape{{0.5f, 0.5f, 0.5f}};
     this->_rigidBody = new RigidBody{parent, 1, &bShape, bWorld};
 }
+
+Cube::Cube(Object3D* parent, btCollisionShape *shape, btDynamicsWorld& bWorld): GameObject("Cube") {
+    this->_rigidBody = new RigidBody{parent, 1, shape, bWorld};
+}

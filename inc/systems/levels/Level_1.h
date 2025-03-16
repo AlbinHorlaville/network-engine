@@ -30,11 +30,14 @@
 #include <Magnum/Shaders/PhongGL.h>
 #include <Magnum/Trade/MeshData.h>
 #include <list>
+#include <unordered_set>
+
 #include "entities/GameObject.h"
 #include "systems/physics/PhysicsWorld.h"
 
 using namespace Magnum;
 using namespace Math::Literals;
+using KeyEvent = Platform::Application::KeyEvent;
 
 typedef SceneGraph::Object<SceneGraph::MatrixTransformation3D> Object3D;
 typedef SceneGraph::Scene<SceneGraph::MatrixTransformation3D> Scene3D;
@@ -52,6 +55,7 @@ class Level_1: public Platform::Application {
     private:
       void drawEvent() override;
       void keyPressEvent(KeyEvent& event) override;
+      void keyReleaseEvent(KeyEvent& event) override;
       void pointerPressEvent(PointerEvent& event) override;
 
     GL::Mesh _box{NoCreate}, _sphere{NoCreate};
@@ -75,6 +79,7 @@ class Level_1: public Platform::Application {
     bool _drawCubes{true};
 
     std::list<GameObject*> _objects;
+    std::unordered_set<KeyEvent::Key> _pressedKeys;
 };
 
 class ColoredDrawable: public SceneGraph::Drawable3D {

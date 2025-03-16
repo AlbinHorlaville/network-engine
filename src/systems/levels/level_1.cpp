@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <entities/primitives/Sphere.h>
 
 #include "systems\levels\Level_1.h"
 #include "components\Rigidbody.h"
@@ -75,7 +76,7 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
     for(Int i = 0; i != 5; ++i) {
         for(Int j = 0; j != 5; ++j) {
             for(Int k = 0; k != 5; ++k) {
-                auto* o = new Cube(&_scene, *(_pWorld->_bWorld));
+                auto* o = new Cube(&_scene, &_bBoxShape, *(_pWorld->_bWorld));
                 _objects.push_back(o);
                 //auto* o = new RigidBody{&_scene, 1.0f, &_bBoxShape, *(_pWorld->_bWorld)};
                 o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
@@ -96,6 +97,23 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
 void Level_1::drawEvent() {
     GL::defaultFramebuffer.clear(GL::FramebufferClear::Color|GL::FramebufferClear::Depth);
 
+    constexpr float moveSpeed = 10.f; // Adjust speed as needed
+    const float deltaTime = _timeline.previousFrameDuration();
+
+    /* Movement */
+    if (_pressedKeys.count(KeyEvent::Key::W))
+        _cameraRig->translateLocal(Vector3::zAxis(-moveSpeed * deltaTime));
+    if (_pressedKeys.count(KeyEvent::Key::S))
+        _cameraRig->translateLocal(Vector3::zAxis(moveSpeed * deltaTime));
+    if (_pressedKeys.count(KeyEvent::Key::A))
+        _cameraRig->translateLocal(Vector3::xAxis(-moveSpeed * deltaTime));
+    if (_pressedKeys.count(KeyEvent::Key::D))
+        _cameraRig->translateLocal(Vector3::xAxis(moveSpeed * deltaTime));
+    if (_pressedKeys.count(KeyEvent::Key::Q))
+        _cameraRig->translateLocal(Vector3::yAxis(moveSpeed * deltaTime));
+    if (_pressedKeys.count(KeyEvent::Key::E))
+        _cameraRig->translateLocal(Vector3::yAxis(-moveSpeed * deltaTime));
+
     /* Housekeeping: remove any objects which are far away from the origin */
     for(Object3D* obj = _scene.children().first(); obj; )
     {
@@ -108,6 +126,14 @@ void Level_1::drawEvent() {
         }
 
         obj = next;
+    }
+
+    // Remove object if there _rigidBody have been destroyed
+    for (GameObject *object : _objects) {
+        if (!object->_rigidBody) {
+            _objects.erase(std::find(_objects.begin(), _objects.end(), object));
+            delete object;
+        }
     }
 
     _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
@@ -138,24 +164,12 @@ void Level_1::drawEvent() {
 }
 
 void Level_1::keyPressEvent(KeyEvent& event) {
-    constexpr float moveSpeed = 0.5f; // Adjust speed as needed
-    const float deltaTime = _timeline.previousFrameDuration();
+    _pressedKeys.insert(event.key());
+    event.setAccepted();
+}
 
-    /* Movement */
-    if(event.key() == Key::W) {
-        _cameraRig->translateLocal(Vector3::zAxis(-moveSpeed * deltaTime));  // Move forward
-    } else if(event.key() == Key::S) {
-        _cameraRig->translateLocal(Vector3::zAxis(moveSpeed * deltaTime));   // Move backward
-    } else if(event.key() == Key::A) {
-        _cameraRig->translateLocal(Vector3::xAxis(-moveSpeed * deltaTime));  // Move left
-    } else if(event.key() == Key::D) {
-        _cameraRig->translateLocal(Vector3::xAxis(moveSpeed * deltaTime));   // Move right
-    } else if(event.key() == Key::Q) {
-        _cameraRig->translateLocal(Vector3::yAxis(moveSpeed * deltaTime));   // Move up
-    } else if(event.key() == Key::E) {
-        _cameraRig->translateLocal(Vector3::yAxis(-moveSpeed * deltaTime));  // Move down
-    } else return;
-
+void Level_1::keyReleaseEvent(KeyEvent& event) {
+    _pressedKeys.erase(event.key()); // Remove key when released
     event.setAccepted();
 }
 
@@ -172,24 +186,28 @@ void Level_1::pointerPressEvent(PointerEvent& event) {
     const Vector2 clickPoint = Vector2::yScale(-1.0f)*(position/Vector2{framebufferSize()} - Vector2{0.5f})*_camera->projectionSize();
     const Vector3 direction = (_cameraObject->absoluteTransformation().rotationScaling()*Vector3{clickPoint, -1.0f}).normalized();
 
+    auto* projectile = new Sphere(&_scene, &_bSphereShape, *(_pWorld->_bWorld));
+    _objects.push_back(projectile);
+    /*
     auto* object = new RigidBody{
         &_scene,
         5.0f,
         &_bSphereShape,
         *(_pWorld->_bWorld)};
-    object->translate(_cameraObject->absoluteTransformation().translation());
+        **/
+    projectile->_rigidBody->translate(_cameraObject->absoluteTransformation().translation());
     /* Has to be done explicitly after the translate() above, as Magnum ->
        Bullet updates are implicitly done only for kinematic bodies */
-    object->syncPose();
+    projectile->_rigidBody->syncPose();
 
     /* Create either a box or a sphere */
-    new ColoredDrawable{*object,
+    new ColoredDrawable{*(projectile->_rigidBody),
         _sphereInstanceData,
         0x220000_rgbf,
         Matrix4::scaling(Vector3{0.25f}), _drawables};
 
     /* Give it an initial velocity */
-    object->rigidBody().setLinearVelocity(btVector3{direction*25.f});
+    projectile->_rigidBody->rigidBody().setLinearVelocity(btVector3{direction*25.f});
 
     event.setAccepted();
 }

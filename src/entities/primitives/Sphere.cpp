@@ -13,3 +13,7 @@ Sphere::Sphere(Object3D* parent, btDynamicsWorld& bWorld): GameObject("Sphere") 
     btSphereShape bShape{0.25f};
     this->_rigidBody = new RigidBody{parent, 1, &bShape, bWorld};
 }
+
+Sphere::Sphere(Object3D* parent, btCollisionShape *shape, btDynamicsWorld& bWorld): GameObject("Sphere") {
+    this->_rigidBody = new RigidBody{parent, 1, shape, bWorld};
+}
