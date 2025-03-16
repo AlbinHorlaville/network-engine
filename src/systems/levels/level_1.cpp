@@ -2,6 +2,8 @@
 // Created by User on 14/03/2025.
 //
 
+#include <iostream>
+
 #include "systems\levels\Level_1.h"
 #include "components\Rigidbody.h"
 #include "entities/primitives/Cube.h"
@@ -61,13 +63,10 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
     GL::Renderer::setPolygonOffset(2.0f, 0.5f);
 
     /* Bullet setup */
-    _debugDraw = BulletIntegration::DebugDraw{};
-    _debugDraw.setMode(BulletIntegration::DebugDraw::Mode::DrawWireframe);
-    _bWorld.setGravity({0.0f, -10.0f, 0.0f});
-    _bWorld.setDebugDrawer(&_debugDraw);
+    _pWorld = new PhysicsWorld({0.0f, -10.0f, 0.0f});
 
     /* Create the ground */
-    auto* ground = new RigidBody{&_scene, 0.0f, &_bGroundShape, _bWorld};
+    auto* ground = new RigidBody{&_scene, 0.0f, &_bGroundShape, *(_pWorld->_bWorld)};
     new ColoredDrawable{*ground, _boxInstanceData, 0xffffff_rgbf,
         Matrix4::scaling({4.0f, 0.5f, 4.0f}), _drawables};
 
@@ -76,9 +75,9 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
     for(Int i = 0; i != 5; ++i) {
         for(Int j = 0; j != 5; ++j) {
             for(Int k = 0; k != 5; ++k) {
-                auto* o = new Cube(&_scene, _bWorld);
+                auto* o = new Cube(&_scene, *(_pWorld->_bWorld));
                 _objects.push_back(o);
-                //auto* o = new RigidBody{&_scene, 1.0f, &_bBoxShape, _bWorld};
+                //auto* o = new RigidBody{&_scene, 1.0f, &_bBoxShape, *(_pWorld->_bWorld)};
                 o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
                 o->_rigidBody->syncPose();
                 new ColoredDrawable{*(o->_rigidBody), _boxInstanceData,
@@ -101,14 +100,17 @@ void Level_1::drawEvent() {
     for(Object3D* obj = _scene.children().first(); obj; )
     {
         Object3D* next = obj->nextSibling();
-        if(obj->transformation().translation().dot() > 100*100)
-            delete obj;
+        if(obj->transformation().translation().dot() > 100*100) {
+            if (auto* rigidBody = dynamic_cast<RigidBody*>(obj)) {
+                _pWorld->_bWorld->removeRigidBody(&rigidBody->rigidBody());  // Remove safely
+            }
+            delete obj;  // Now it's safe to delete
+        }
 
         obj = next;
     }
 
-    /* Step bullet simulation */
-    _bWorld.stepSimulation(_timeline.previousFrameDuration(), 5);
+    _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
 
     if(_drawCubes) {
         /* Populate instance data with transformations and colors */
@@ -130,52 +132,28 @@ void Level_1::drawEvent() {
         _shader.draw(_sphere);
     }
 
-    /* Debug draw. If drawing on top of cubes, avoid flickering by setting
-       depth function to <= instead of just <.
-    if(_drawDebug) {
-        if(_drawCubes)
-            GL::Renderer::setDepthFunction(GL::Renderer::DepthFunction::LessOrEqual);
-
-        _debugDraw.setTransformationProjectionMatrix(
-            _camera->projectionMatrix()*_camera->cameraMatrix());
-        _bWorld.debugDrawWorld();
-
-        if(_drawCubes)
-            GL::Renderer::setDepthFunction(GL::Renderer::DepthFunction::Less);
-    }
-    */
-
     swapBuffers();
     _timeline.nextFrame();
     redraw();
 }
 
 void Level_1::keyPressEvent(KeyEvent& event) {
+    constexpr float moveSpeed = 0.5f; // Adjust speed as needed
+    const float deltaTime = _timeline.previousFrameDuration();
+
     /* Movement */
-    if(event.key() == Key::Down) {
-        _cameraObject->rotateX(5.0_degf);
-    } else if(event.key() == Key::Up) {
-        _cameraObject->rotateX(-5.0_degf);
-    } else if(event.key() == Key::Left) {
-        _cameraRig->rotateY(-5.0_degf);
-    } else if(event.key() == Key::Right) {
-        _cameraRig->rotateY(5.0_degf);
-
-        /* Toggling draw modes */
-    } else if(event.key() == Key::D) {
-        if(_drawCubes && _drawDebug) {
-            _drawDebug = false;
-        } else if(_drawCubes && !_drawDebug) {
-            _drawCubes = false;
-            _drawDebug = true;
-        } else if(!_drawCubes && _drawDebug) {
-            _drawCubes = true;
-            _drawDebug = true;
-        }
-
-        /* What to shoot */
+    if(event.key() == Key::W) {
+        _cameraRig->translateLocal(Vector3::zAxis(-moveSpeed * deltaTime));  // Move forward
     } else if(event.key() == Key::S) {
-        _shootBox ^= true;
+        _cameraRig->translateLocal(Vector3::zAxis(moveSpeed * deltaTime));   // Move backward
+    } else if(event.key() == Key::A) {
+        _cameraRig->translateLocal(Vector3::xAxis(-moveSpeed * deltaTime));  // Move left
+    } else if(event.key() == Key::D) {
+        _cameraRig->translateLocal(Vector3::xAxis(moveSpeed * deltaTime));   // Move right
+    } else if(event.key() == Key::Q) {
+        _cameraRig->translateLocal(Vector3::yAxis(moveSpeed * deltaTime));   // Move up
+    } else if(event.key() == Key::E) {
+        _cameraRig->translateLocal(Vector3::yAxis(-moveSpeed * deltaTime));  // Move down
     } else return;
 
     event.setAccepted();
@@ -196,9 +174,9 @@ void Level_1::pointerPressEvent(PointerEvent& event) {
 
     auto* object = new RigidBody{
         &_scene,
-        _shootBox ? 1.0f : 5.0f,
-        _shootBox ? static_cast<btCollisionShape*>(&_bBoxShape) : &_bSphereShape,
-        _bWorld};
+        5.0f,
+        &_bSphereShape,
+        *(_pWorld->_bWorld)};
     object->translate(_cameraObject->absoluteTransformation().translation());
     /* Has to be done explicitly after the translate() above, as Magnum ->
        Bullet updates are implicitly done only for kinematic bodies */
@@ -206,9 +184,9 @@ void Level_1::pointerPressEvent(PointerEvent& event) {
 
     /* Create either a box or a sphere */
     new ColoredDrawable{*object,
-        _shootBox ? _boxInstanceData : _sphereInstanceData,
-        _shootBox ? 0x880000_rgbf : 0x220000_rgbf,
-        Matrix4::scaling(Vector3{_shootBox ? 0.5f : 0.25f}), _drawables};
+        _sphereInstanceData,
+        0x220000_rgbf,
+        Matrix4::scaling(Vector3{0.25f}), _drawables};
 
     /* Give it an initial velocity */
     object->rigidBody().setLinearVelocity(btVector3{direction*25.f});

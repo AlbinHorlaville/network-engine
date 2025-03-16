@@ -12,7 +12,6 @@
 #include <Magnum/Timeline.h>
 #include <Magnum/BulletIntegration/Integration.h>
 #include <Magnum/BulletIntegration/MotionState.h>
-#include <Magnum/BulletIntegration/DebugDraw.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
 #include <Magnum/GL/Mesh.h>
 #include <Magnum/GL/Renderer.h>
@@ -32,6 +31,7 @@
 #include <Magnum/Trade/MeshData.h>
 #include <list>
 #include "entities/GameObject.h"
+#include "systems/physics/PhysicsWorld.h"
 
 using namespace Magnum;
 using namespace Math::Literals;
@@ -57,17 +57,9 @@ class Level_1: public Platform::Application {
     GL::Mesh _box{NoCreate}, _sphere{NoCreate};
     GL::Buffer _boxInstanceBuffer{NoCreate}, _sphereInstanceBuffer{NoCreate};
     Shaders::PhongGL _shader{NoCreate};
-    BulletIntegration::DebugDraw _debugDraw{NoCreate};
     Containers::Array<InstanceData> _boxInstanceData, _sphereInstanceData;
 
-    btDbvtBroadphase _bBroadphase;
-    btDefaultCollisionConfiguration _bCollisionConfig;
-    btCollisionDispatcher _bDispatcher{&_bCollisionConfig};
-    btSequentialImpulseConstraintSolver _bSolver;
-
-    /* The world has to live longer than the scene because RigidBody
-       instances have to remove themselves from it on destruction */
-    btDiscreteDynamicsWorld _bWorld{&_bDispatcher, &_bBroadphase, &_bSolver, &_bCollisionConfig};
+    PhysicsWorld* _pWorld;
 
     Scene3D _scene;
     SceneGraph::Camera3D* _camera;
@@ -80,7 +72,7 @@ class Level_1: public Platform::Application {
     btSphereShape _bSphereShape{0.25f};
     btBoxShape _bGroundShape{{4.0f, 0.5f, 4.0f}};
 
-    bool _drawCubes{true}, _drawDebug{true}, _shootBox{true};
+    bool _drawCubes{true};
 
     std::list<GameObject*> _objects;
 };
