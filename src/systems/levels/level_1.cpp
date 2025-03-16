@@ -65,6 +65,7 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
 
     /* Bullet setup */
     _pWorld = new PhysicsWorld({0.0f, -10.0f, 0.0f});
+    _pProjectileManager = new ProjectileManager();
 
     /* Create the ground */
     auto* ground = new RigidBody{&_scene, 0.0f, &_bGroundShape, *(_pWorld->_bWorld)};
@@ -99,6 +100,11 @@ void Level_1::drawEvent() {
 
     constexpr float moveSpeed = 10.f; // Adjust speed as needed
     const float deltaTime = _timeline.previousFrameDuration();
+
+    if(_pressedKeys.count(KeyEvent::Key::R)) {
+        _pProjectileManager->_shootSphere = false;
+    }
+
 
     /* Movement */
     if (_pressedKeys.count(KeyEvent::Key::W))
@@ -184,30 +190,18 @@ void Level_1::pointerPressEvent(PointerEvent& event) {
        systems */
     const Vector2 position = event.position()*Vector2{framebufferSize()}/Vector2{windowSize()};
     const Vector2 clickPoint = Vector2::yScale(-1.0f)*(position/Vector2{framebufferSize()} - Vector2{0.5f})*_camera->projectionSize();
-    const Vector3 direction = (_cameraObject->absoluteTransformation().rotationScaling()*Vector3{clickPoint, -1.0f}).normalized();
+    btVector3 direction = btVector3((_cameraObject->absoluteTransformation().rotationScaling() * Vector3{clickPoint, -1.0f}).
+        normalized());
+    Vector3 translate = _cameraObject->absoluteTransformation().translation();
 
-    auto* projectile = new Sphere(&_scene, 0.25f, *(_pWorld->_bWorld));
+    GameObject* projectile = _pProjectileManager->Shoot(&_scene, _pWorld, translate, direction);
     _objects.push_back(projectile);
-    /*
-    auto* object = new RigidBody{
-        &_scene,
-        5.0f,
-        &_bSphereShape,
-        *(_pWorld->_bWorld)};
-        **/
-    projectile->_rigidBody->translate(_cameraObject->absoluteTransformation().translation());
-    /* Has to be done explicitly after the translate() above, as Magnum ->
-       Bullet updates are implicitly done only for kinematic bodies */
-    projectile->_rigidBody->syncPose();
 
     /* Create either a box or a sphere */
     new ColoredDrawable{*(projectile->_rigidBody),
         _sphereInstanceData,
         0x220000_rgbf,
         Matrix4::scaling(Vector3{0.25f}), _drawables};
-
-    /* Give it an initial velocity */
-    projectile->_rigidBody->rigidBody().setLinearVelocity(btVector3{direction*25.f});
 
     event.setAccepted();
 }

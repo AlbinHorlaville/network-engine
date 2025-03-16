@@ -31,6 +31,7 @@
 #include <Magnum/Trade/MeshData.h>
 #include <list>
 #include <unordered_set>
+#include <systems/physics/ProjectileManager.h>
 
 #include "entities/GameObject.h"
 #include "systems/physics/PhysicsWorld.h"
@@ -64,6 +65,7 @@ class Level_1: public Platform::Application {
     Containers::Array<InstanceData> _boxInstanceData, _sphereInstanceData;
 
     PhysicsWorld* _pWorld;
+    ProjectileManager* _pProjectileManager;
 
     Scene3D _scene;
     SceneGraph::Camera3D* _camera;
