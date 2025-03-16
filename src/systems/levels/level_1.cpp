@@ -68,8 +68,8 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
     _pProjectileManager = new ProjectileManager();
 
     /* Create the ground */
-    auto* ground = new RigidBody{&_scene, 0.0f, &_bGroundShape, *(_pWorld->_bWorld)};
-    new ColoredDrawable{*ground, _boxInstanceData, 0xffffff_rgbf,
+    auto* ground = new Cube(&_scene, {4.0f, 0.5f, 4.0f}, 0.f, *(_pWorld->_bWorld));
+    new ColoredDrawable{*ground->_rigidBody, _boxInstanceData, 0xffffff_rgbf,
         Matrix4::scaling({4.0f, 0.5f, 4.0f}), _drawables};
 
     /* Create boxes with random colors */
@@ -77,7 +77,7 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
     for(Int i = 0; i != 5; ++i) {
         for(Int j = 0; j != 5; ++j) {
             for(Int k = 0; k != 5; ++k) {
-                auto* o = new Cube(&_scene, {0.5f, 0.5f, 0.5f},*(_pWorld->_bWorld));
+                auto* o = new Cube(&_scene, {0.5f, 0.5f, 0.5f}, 1.f, *(_pWorld->_bWorld));
                 _objects.push_back(o);
                 //auto* o = new RigidBody{&_scene, 1.0f, &_bBoxShape, *(_pWorld->_bWorld)};
                 o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
@@ -104,7 +104,6 @@ void Level_1::drawEvent() {
     if(_pressedKeys.count(KeyEvent::Key::R)) {
         _pProjectileManager->_shootSphere = false;
     }
-
 
     /* Movement */
     if (_pressedKeys.count(KeyEvent::Key::W))
@@ -152,9 +151,6 @@ void Level_1::drawEvent() {
 
         _shader.setProjectionMatrix(_camera->projectionMatrix());
 
-        /* Upload instance data to the GPU (orphaning the previous buffer
-           contents) and draw all cubes in one call, and all spheres (if any)
-           in another call */
         _boxInstanceBuffer.setData(_boxInstanceData, GL::BufferUsage::DynamicDraw);
         _box.setInstanceCount(_boxInstanceData.size());
         _shader.draw(_box);

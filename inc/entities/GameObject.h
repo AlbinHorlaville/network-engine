@@ -14,9 +14,9 @@ class GameObject {
 public:
     std::string _name;
     RigidBody* _rigidBody;
+    GL::Mesh _mesh;
 
     GameObject(std::string name) : _name(std::move(name)), _rigidBody(nullptr) {}
-
     ~GameObject() {delete _rigidBody;}
 };
 
