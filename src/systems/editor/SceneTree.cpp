@@ -26,12 +26,11 @@ void SceneTree::DrawNode(SceneNode& node) {
 }
 
 void SceneTree::DrawSceneTree() {
-    bool open = true;
     ImVec2 windowSize = ImGui::GetMainViewport()->Size;
     ImGui::SetNextWindowPos(ImVec2(3, 3), ImGuiCond_Always, ImVec2(0.0f, 0.0f)); // Place window in top-left corner
-    ImGui::SetNextWindowSize(ImVec2(windowSize.x/6.f, windowSize.y - 5.f)); // Set a dynamic size corresponding to parent window size
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x/5.f, windowSize.y - 5.f)); // Set a dynamic size corresponding to parent window size
 
-    ImGui::Begin("Scene Hierarchy", &open, ImGuiWindowFlags_NoResize);
+    ImGui::Begin("Scene Hierarchy", nullptr, ImGuiWindowFlags_NoResize);
     std::vector<SceneNode> sceneChildrenNodes;
     for (auto const& pair : *_gameObjects) {
         sceneChildrenNodes.push_back(SceneNode(pair.second->_name, std::vector<SceneNode>{}));

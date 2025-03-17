@@ -9,7 +9,8 @@
 #include "systems\levels\Level_1.h"
 #include "components\Rigidbody.h"
 #include "entities/primitives/Cube.h"
-#include "imgui.h"
+#include <Magnum/ImGuiIntegration/Context.hpp>
+
 
 Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, NoCreate) {
     /* Try 8x MSAA, fall back to zero samples if not possible. Enable only 2x
@@ -177,7 +178,6 @@ void Level_1::drawEvent() {
     }
 
     // Render ImGui
-    ImGui::SetNextWindowSize(ImVec2(1000, 500), ImGuiCond_FirstUseEver);
     _sceneTreeUI->DrawSceneTree();
 
     GL::Renderer::enable(GL::Renderer::Feature::Blending);
@@ -208,6 +208,8 @@ void Level_1::keyReleaseEvent(KeyEvent& event) {
 }
 
 void Level_1::pointerPressEvent(PointerEvent& event) {
+    if(_imgui.handlePointerPressEvent(event)) return;
+
     /* Shoot an object on click */
     if(!event.isPrimary() ||
        !(event.pointer() & Pointer::MouseLeft))
@@ -227,4 +229,16 @@ void Level_1::pointerPressEvent(PointerEvent& event) {
     _objects[projectile->_name] = projectile;
 
     event.setAccepted();
+}
+
+void Level_1::pointerReleaseEvent(PointerEvent& event) {
+    if(_imgui.handlePointerReleaseEvent(event)){}
+}
+
+void Level_1::pointerMoveEvent(PointerMoveEvent& event) {
+    if(_imgui.handlePointerMoveEvent(event)){}
+}
+
+void Level_1::scrollEvent(ScrollEvent& event) {
+    if(_imgui.handleScrollEvent(event)){}
 }

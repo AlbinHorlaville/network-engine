@@ -58,10 +58,13 @@ class Level_1: public Platform::Application {
       ~Level_1();
 
     private:
-      void drawEvent() override;
-      void keyPressEvent(KeyEvent& event) override;
-      void keyReleaseEvent(KeyEvent& event) override;
-      void pointerPressEvent(PointerEvent& event) override;
+    void drawEvent() override;
+    void keyPressEvent(KeyEvent& event) override;
+    void keyReleaseEvent(KeyEvent& event) override;
+    void pointerPressEvent(PointerEvent& event) override;
+    void scrollEvent(ScrollEvent& event) override;
+    void pointerReleaseEvent(PointerEvent& event) override;
+    void pointerMoveEvent(PointerMoveEvent& event) override;
 
     GL::Mesh _box{NoCreate}, _sphere{NoCreate};
     GL::Buffer _boxInstanceBuffer{NoCreate}, _sphereInstanceBuffer{NoCreate};
