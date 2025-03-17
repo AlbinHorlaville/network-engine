@@ -5,34 +5,34 @@
 #include <utility>
 
 #include "entities/primitives/Cube.h"
-#include "Magnum/MeshTools/Compile.h"
-#include "Magnum/Shaders/PhongGL.h"
 #include "Magnum/Primitives/Cube.h"
-#include "Magnum/Trade/MeshData.h"
 
-
-Cube::Cube(std::string name, Object3D *parent, const btVector3 scale, float mass, btDynamicsWorld &bWorld):
-GameObject(std::move(name)), _collisionShape(btBoxShape{scale}) {
+Cube::Cube(Level_1* app, std::string name, Object3D *parent, const btVector3 scale, float mass, const Color3& color):
+    GameObject(std::move(name)), _collisionShape(btBoxShape{scale}) {
+    _app = app;
     _mass = mass;
     _scale = scale;
-    _mesh = MeshTools::compile(Primitives::cubeSolid());
-    _mesh.addVertexBufferInstanced(GL::Buffer{}, 1, 0,
-        Shaders::PhongGL::TransformationMatrix{},
-        Shaders::PhongGL::NormalMatrix{},
-        Shaders::PhongGL::Color3{});
-    this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, bWorld};
+
+    // Physics
+    this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
+
+    // Appearances
+    new ColoredDrawable{*(_rigidBody), _app->getBoxInstanceData(), color,
+    Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }
 
-Cube::Cube(Object3D* parent, const btVector3 scale, const float mass, btDynamicsWorld& bWorld):
-GameObject("Cube"), _collisionShape(btBoxShape{scale}) {
+Cube::Cube(Level_1* app, Object3D* parent, const btVector3 scale, const float mass, const Color3& color):
+    GameObject("Cube"), _collisionShape(btBoxShape{scale}) {
+    _app = app;
     _mass = mass;
     _scale = scale;
-    _mesh = MeshTools::compile(Primitives::cubeSolid());
-    _mesh.addVertexBufferInstanced(GL::Buffer{}, 1, 0,
-        Shaders::PhongGL::TransformationMatrix{},
-        Shaders::PhongGL::NormalMatrix{},
-        Shaders::PhongGL::Color3{});
-    this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, bWorld};
+
+    // Physics
+    this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
+
+    // Appearance
+    new ColoredDrawable{*(_rigidBody), _app->getBoxInstanceData(), color,
+    Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }
 
 void Cube::setScale(btVector3 newScale) {
@@ -61,4 +61,3 @@ void Cube::setMass(const float mass) {
     // Set mass properties with mass and inertia tensor
     this->_rigidBody->rigidBody().setMassProps(_mass, inertia);
 }
-

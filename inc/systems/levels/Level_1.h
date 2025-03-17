@@ -31,10 +31,11 @@
 #include <Magnum/Trade/MeshData.h>
 #include <list>
 #include <unordered_set>
-#include <systems/physics/ProjectileManager.h>
 
-#include "entities/GameObject.h"
-#include "systems/physics/PhysicsWorld.h"
+
+class GameObject;
+class PhysicsWorld;
+class ProjectileManager;
 
 using namespace Magnum;
 using namespace Math::Literals;
@@ -52,6 +53,7 @@ struct InstanceData {
 class Level_1: public Platform::Application {
     public:
       explicit Level_1(const Arguments &arguments);
+      ~Level_1();
 
     private:
       void drawEvent() override;
@@ -69,7 +71,7 @@ class Level_1: public Platform::Application {
 
     Scene3D _scene;
     SceneGraph::Camera3D* _camera;
-    SceneGraph::DrawableGroup3D _drawables;
+    SceneGraph::DrawableGroup3D* _drawables;
     Timeline _timeline;
 
     Object3D *_cameraRig, *_cameraObject;
@@ -81,22 +83,24 @@ class Level_1: public Platform::Application {
     bool _drawCubes{true};
 
     std::list<GameObject*> _objects;
-    std::unordered_set<KeyEvent::Key> _pressedKeys;
-};
+    std::unordered_set<Key> _pressedKeys;
 
-class ColoredDrawable: public SceneGraph::Drawable3D {
 public:
-    explicit ColoredDrawable(Object3D& object, Containers::Array<InstanceData>& instanceData, const Color3& color, const Matrix4& primitiveTransformation, SceneGraph::DrawableGroup3D& drawables): SceneGraph::Drawable3D{object, &drawables}, _instanceData(instanceData), _color{color}, _primitiveTransformation{primitiveTransformation} {}
-
-private:
-    void draw(const Matrix4& transformation, SceneGraph::Camera3D&) override {
-        const Matrix4 t = transformation*_primitiveTransformation;
-        arrayAppend(_instanceData, InPlaceInit, t, t.normalMatrix(), _color);
+    Containers::Array<InstanceData>& getBoxInstanceData() {
+        return _boxInstanceData;
     }
 
-    Containers::Array<InstanceData>& _instanceData;
-    Color3 _color;
-    Matrix4 _primitiveTransformation;
+    Containers::Array<InstanceData>& getSphereInstanceData() {
+        return _sphereInstanceData;
+    }
+
+    PhysicsWorld& getWorld() const {
+        return *_pWorld;
+    }
+
+    SceneGraph::DrawableGroup3D* getDrawables() {
+        return _drawables;
+    }
 };
 
 

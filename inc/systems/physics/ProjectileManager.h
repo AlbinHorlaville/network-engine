@@ -5,9 +5,12 @@
 #ifndef PROJECTILEMANAGER_H
 #define PROJECTILEMANAGER_H
 
-#include <entities/GameObject.h>
 #include <Magnum/SceneGraph/Scene.h>
-#include "systems/physics/PhysicsWorld.h"
+
+class btVector3;
+class GameObject;
+class PhysicsObject;
+class Level_1;
 
 using namespace Magnum;
 typedef SceneGraph::Scene<SceneGraph::MatrixTransformation3D> Scene3D;
@@ -17,7 +20,7 @@ public:
     bool _shootSphere;
 
     ProjectileManager(){_shootSphere = true;}
-    GameObject* Shoot(Scene3D* scene, PhysicsWorld* physicsWorld, Vector3& position, btVector3& direction);
+    GameObject* Shoot(Level_1* app, Scene3D* scene, Vector3& position, btVector3& direction);
 };
 
 

@@ -3,28 +3,33 @@
 //
 
 #include "entities/primitives/Sphere.h"
-#include "Magnum/MeshTools/Compile.h"
-#include "Magnum/Shaders/PhongGL.h"
-#include "Magnum/Primitives/UVSphere.h"
-#include "Magnum/Trade/MeshData.h"
 
-Sphere::Sphere(std::string name, Object3D* parent, float scale, const float mass, btDynamicsWorld& bWorld):
+Sphere::Sphere(Level_1* app, std::string name, Object3D *parent, float scale, float mass, const Color3& color):
 GameObject(std::move(name)), _collisionShape(btSphereShape{scale}) {
+    _app = app;
     _mass = mass;
     _scale = scale;
-    _mesh = MeshTools::compile(Primitives::uvSphereSolid(16, 32));
-    _mesh.addVertexBufferInstanced(GL::Buffer{}, 1, 0,
-        Shaders::PhongGL::TransformationMatrix{},
-        Shaders::PhongGL::NormalMatrix{},
-        Shaders::PhongGL::Color3{});
-    this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, bWorld};
+
+    // Physics
+    this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
+
+    // Appearance
+    new ColoredDrawable{*(_rigidBody), _app->getSphereInstanceData(), color,
+    Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }
 
-Sphere::Sphere(Object3D* parent, const float scale, const float mass, btDynamicsWorld& bWorld):
-GameObject("Sphere"), _collisionShape(btSphereShape{scale}) {
+Sphere::Sphere(Level_1* app, Object3D* parent, const float scale, const float mass, const Color3& color):
+    GameObject("Sphere"), _collisionShape(btSphereShape{scale}) {
+    _app = app;
     _mass = mass;
     _scale = scale;
-    this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, bWorld};
+
+    // Physics
+    this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
+
+    // Appearance
+    new ColoredDrawable{*(_rigidBody), _app->getSphereInstanceData(), color,
+    Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }
 
 void Sphere::setScale(const float newScale) {
@@ -52,4 +57,3 @@ void Sphere::setMass(const float mass) {
     // Set mass properties with mass and inertia tensor
     this->_rigidBody->rigidBody().setMassProps(_mass, inertia);
 }
-

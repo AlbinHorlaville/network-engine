@@ -4,7 +4,9 @@
 
 #include "components\RigidBody.h"
 
-RigidBody::RigidBody(Object3D* parent, Float mass, btCollisionShape* bShape, btDynamicsWorld& bWorld): Object3D{parent}, _bWorld(bWorld){
+class PhysicsWorld;
+
+RigidBody::RigidBody(Object3D* parent, Float mass, btCollisionShape* bShape, PhysicsWorld& world): Object3D{parent}, _physicsWorld(world){
     /* Calculate inertia so the object reacts as it should with
      rotation and everything */
     btVector3 bInertia(0.0f, 0.0f, 0.0f);
@@ -16,11 +18,11 @@ RigidBody::RigidBody(Object3D* parent, Float mass, btCollisionShape* bShape, btD
     _bRigidBody.emplace(btRigidBody::btRigidBodyConstructionInfo{
         mass, &motionState->btMotionState(), bShape, bInertia});
     _bRigidBody->forceActivationState(DISABLE_DEACTIVATION);
-    bWorld.addRigidBody(_bRigidBody.get());
+    _physicsWorld._bWorld->addRigidBody(_bRigidBody.get());
 }
 
 RigidBody::~RigidBody() {
-    _bWorld.removeRigidBody(_bRigidBody.get());
+    _physicsWorld._bWorld->removeRigidBody(_bRigidBody.get());
 }
 
 btRigidBody& RigidBody::rigidBody() {

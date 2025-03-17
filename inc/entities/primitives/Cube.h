@@ -11,12 +11,12 @@
 class Cube: public GameObject {
 public:
     Cube() = delete;
-    Cube(std::string name, Object3D *parent, btVector3 scale, float mass, btDynamicsWorld &bWorld);
-    Cube(Object3D *parent, btVector3 scale, float mass, btDynamicsWorld &bWorld);
+    Cube(Level_1* app, std::string name, Object3D *parent, btVector3 scale, float mass, const Color3& color);
+    Cube(Level_1* app, Object3D *parent, btVector3 scale, float mass, const Color3& color);
     ~Cube() = default;
 
     void setScale(btVector3 newScale);
-    void setMass(float mass);
+    void setMass(float mass) override;
 
 private:
     btBoxShape _collisionShape;

@@ -7,15 +7,17 @@
 #include <entities/GameObject.h>
 #include "entities/primitives/Cube.h"
 #include "entities/primitives/Sphere.h"
+#include "systems/levels/Level_1.h"
 
-
-GameObject* ProjectileManager::Shoot(Scene3D* scene, PhysicsWorld* physicsWorld, Vector3& translate, btVector3& direction) {
+GameObject* ProjectileManager::Shoot(Level_1* app, Scene3D* scene, Vector3& translate, btVector3& direction) {
     GameObject* projectile;
+    Color3 color = 0x1010ff_rgbf;
     if (_shootSphere) {
-        projectile = new Sphere(scene, 0.25f, 5.f, *physicsWorld->_bWorld);
+        projectile = new Sphere(app, scene, 0.25f, 5.f, color);
     }else {
-        projectile = new Cube(scene, {0.5f, 0.5f, 0.5f}, 1.f, *physicsWorld->_bWorld);
+        projectile = new Cube(app, scene, {0.5f, 0.5f, 0.5f}, 1.f, color);
     }
+
 
     projectile->_rigidBody->translate(translate);
     /* Has to be done explicitly after the translate() above, as Magnum ->

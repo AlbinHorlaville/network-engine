@@ -3,8 +3,9 @@
 //
 
 #include <iostream>
-#include <entities/primitives/Sphere.h>
 
+#include "systems/physics/PhysicsWorld.h"
+#include <systems/physics/ProjectileManager.h>
 #include "systems\levels\Level_1.h"
 #include "components\Rigidbody.h"
 #include "entities/primitives/Cube.h"
@@ -67,24 +68,23 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
     _pWorld = new PhysicsWorld({0.0f, -10.0f, 0.0f});
     _pProjectileManager = new ProjectileManager();
 
+    // Init drawables
+    _drawables = new SceneGraph::DrawableGroup3D();
+
     /* Create the ground */
-    auto* ground = new Cube(&_scene, {4.0f, 0.5f, 4.0f}, 0.f, *(_pWorld->_bWorld));
-    new ColoredDrawable{*ground->_rigidBody, _boxInstanceData, 0xffffff_rgbf,
-        Matrix4::scaling({4.0f, 0.5f, 4.0f}), _drawables};
+    auto* ground = new Cube(this, &_scene, {4.0f, 0.5f, 4.0f}, 0.f, 0xffffff_rgbf);
+    _objects.push_back(ground);
 
     /* Create boxes with random colors */
     Deg hue = 42.0_degf;
     for(Int i = 0; i != 5; ++i) {
         for(Int j = 0; j != 5; ++j) {
             for(Int k = 0; k != 5; ++k) {
-                auto* o = new Cube(&_scene, {0.5f, 0.5f, 0.5f}, 1.f, *(_pWorld->_bWorld));
+                Color3 color = Color3::fromHsv({hue += 137.5_degf, 0.75f, 0.9f});
+                auto* o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 1.f, color);
                 _objects.push_back(o);
-                //auto* o = new RigidBody{&_scene, 1.0f, &_bBoxShape, *(_pWorld->_bWorld)};
                 o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
                 o->_rigidBody->syncPose();
-                new ColoredDrawable{*(o->_rigidBody), _boxInstanceData,
-                    Color3::fromHsv({hue += 137.5_degf, 0.75f, 0.9f}),
-                    Matrix4::scaling(Vector3{0.5f}), _drawables};
             }
         }
     }
@@ -95,28 +95,38 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
     _timeline.start();
 }
 
+Level_1::~Level_1() {
+    delete _drawables;
+    delete _pWorld;
+    delete _pProjectileManager;
+    delete _camera;
+    delete _cameraRig;
+    delete _cameraObject;
+}
+
+
 void Level_1::drawEvent() {
     GL::defaultFramebuffer.clear(GL::FramebufferClear::Color|GL::FramebufferClear::Depth);
 
     constexpr float moveSpeed = 10.f; // Adjust speed as needed
     const float deltaTime = _timeline.previousFrameDuration();
 
-    if(_pressedKeys.count(KeyEvent::Key::R)) {
+    if(_pressedKeys.count(Key::R)) {
         _pProjectileManager->_shootSphere = false;
     }
 
     /* Movement */
-    if (_pressedKeys.count(KeyEvent::Key::W))
+    if (_pressedKeys.count(Key::W))
         _cameraRig->translateLocal(Vector3::zAxis(-moveSpeed * deltaTime));
-    if (_pressedKeys.count(KeyEvent::Key::S))
+    if (_pressedKeys.count(Key::S))
         _cameraRig->translateLocal(Vector3::zAxis(moveSpeed * deltaTime));
-    if (_pressedKeys.count(KeyEvent::Key::A))
+    if (_pressedKeys.count(Key::A))
         _cameraRig->translateLocal(Vector3::xAxis(-moveSpeed * deltaTime));
-    if (_pressedKeys.count(KeyEvent::Key::D))
+    if (_pressedKeys.count(Key::D))
         _cameraRig->translateLocal(Vector3::xAxis(moveSpeed * deltaTime));
-    if (_pressedKeys.count(KeyEvent::Key::Q))
+    if (_pressedKeys.count(Key::Q))
         _cameraRig->translateLocal(Vector3::yAxis(moveSpeed * deltaTime));
-    if (_pressedKeys.count(KeyEvent::Key::E))
+    if (_pressedKeys.count(Key::E))
         _cameraRig->translateLocal(Vector3::yAxis(-moveSpeed * deltaTime));
 
     /* Housekeeping: remove any objects which are far away from the origin */
@@ -147,7 +157,7 @@ void Level_1::drawEvent() {
         /* Populate instance data with transformations and colors */
         arrayResize(_boxInstanceData, 0);
         arrayResize(_sphereInstanceData, 0);
-        _camera->draw(_drawables);
+        _camera->draw(*_drawables);
 
         _shader.setProjectionMatrix(_camera->projectionMatrix());
 
@@ -190,14 +200,9 @@ void Level_1::pointerPressEvent(PointerEvent& event) {
         normalized());
     Vector3 translate = _cameraObject->absoluteTransformation().translation();
 
-    GameObject* projectile = _pProjectileManager->Shoot(&_scene, _pWorld, translate, direction);
+    GameObject* projectile = _pProjectileManager->Shoot(this, &_scene, translate, direction);
+    projectile->setMass(1000);
     _objects.push_back(projectile);
-
-    /* Create either a box or a sphere */
-    new ColoredDrawable{*(projectile->_rigidBody),
-        _sphereInstanceData,
-        0x220000_rgbf,
-        Matrix4::scaling(Vector3{0.25f}), _drawables};
 
     event.setAccepted();
 }

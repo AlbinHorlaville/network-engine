@@ -11,12 +11,12 @@
 class Sphere: public GameObject {
 public:
     Sphere() = delete;
-    Sphere(std::string name, Object3D *parent, float scale, float mass, btDynamicsWorld &bWorld);
-    Sphere(Object3D *parent, float scale, float mass, btDynamicsWorld &bWorld);
+    Sphere(Level_1* app, std::string name, Object3D *parent, float scale, float mass, const Color3& color);
+    Sphere(Level_1* app, Object3D *parent, float scale, float mass, const Color3& color);
     ~Sphere() = default;
 
     void setScale(float newScale);
-    void setMass(float mass);
+    void setMass(float mass) override;
 
 private:
     btSphereShape _collisionShape;
