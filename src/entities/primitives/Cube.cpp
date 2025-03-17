@@ -13,6 +13,9 @@ Cube::Cube(Level_1* app, std::string name, Object3D *parent, const btVector3 sca
     _mass = mass;
     _scale = scale;
 
+    // Change name if it already exists
+    giveDefaultName();
+
     // Physics
     this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
 
@@ -26,6 +29,9 @@ Cube::Cube(Level_1* app, Object3D* parent, const btVector3 scale, const float ma
     _app = app;
     _mass = mass;
     _scale = scale;
+
+    // Change name if it already exists
+    giveDefaultName();
 
     // Physics
     this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};

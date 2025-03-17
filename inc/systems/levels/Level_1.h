@@ -29,7 +29,7 @@
 #include <Magnum/SceneGraph/Scene.h>
 #include <Magnum/Shaders/PhongGL.h>
 #include <Magnum/Trade/MeshData.h>
-#include <list>
+#include <map>
 #include <unordered_set>
 #include <systems/editor/SceneTree.h>
 #include "Magnum/ImGuiIntegration/Context.h"
@@ -86,12 +86,16 @@ class Level_1: public Platform::Application {
 
     bool _drawCubes{true};
 
-    std::list<GameObject*> _objects;
+    std::map<std::string, GameObject*> _objects;
+
     std::unordered_set<Key> _pressedKeys;
 
     SceneTree* _sceneTreeUI;
 
 public:
+    std::map<std::string, GameObject *> const& getObjects() const {
+        return _objects;
+    }
     Containers::Array<InstanceData>& getBoxInstanceData() {
         return _boxInstanceData;
     }

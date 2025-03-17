@@ -6,7 +6,7 @@
 #include "entities/GameObject.h"
 #include "imgui.h"
 
-SceneTree::SceneTree(std::list<GameObject*>* gameObjects) {
+SceneTree::SceneTree(std::map<std::string, GameObject*>* gameObjects) {
     _gameObjects = gameObjects;
 }
 
@@ -27,8 +27,8 @@ void SceneTree::DrawNode(SceneNode& node) {
 void SceneTree::DrawSceneTree() {
     ImGui::Begin("Scene Hierarchy");
     std::vector<SceneNode> sceneChildrenNodes;
-    for (const auto& object : *_gameObjects) {
-        sceneChildrenNodes.push_back(SceneNode(object->_name, std::vector<SceneNode>{}));
+    for (auto const& pair : *_gameObjects) {
+        sceneChildrenNodes.push_back(SceneNode(pair.second->_name, std::vector<SceneNode>{}));
     }
     auto root = SceneNode("Scene", sceneChildrenNodes);
     DrawNode(root);

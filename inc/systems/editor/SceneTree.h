@@ -6,6 +6,7 @@
 #define SCENETREE_H
 
 #include <list>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -20,7 +21,7 @@ class SceneTree {
 
 public:
     SceneTree() = delete;
-    SceneTree(std::list<GameObject*>* gameObjects);
+    SceneTree(std::map<std::string, GameObject*>* gameObjects);
     ~SceneTree() = default;
 
     // Draw the entire scene tree
@@ -30,7 +31,7 @@ private:
     // Draw a given node of the scene tree
     void DrawNode(SceneNode& node);
 
-    std::list<GameObject*>* _gameObjects;
+    std::map<std::string, GameObject *> *_gameObjects;
 
 };
 

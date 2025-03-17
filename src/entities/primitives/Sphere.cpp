@@ -10,6 +10,9 @@ GameObject(std::move(name)), _collisionShape(btSphereShape{scale}) {
     _mass = mass;
     _scale = scale;
 
+    // Change name if it already exists
+    giveDefaultName();
+
     // Physics
     this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
 
@@ -23,6 +26,9 @@ Sphere::Sphere(Level_1* app, Object3D* parent, const float scale, const float ma
     _app = app;
     _mass = mass;
     _scale = scale;
+
+    // Change name if it already exists
+    giveDefaultName();
 
     // Physics
     this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};

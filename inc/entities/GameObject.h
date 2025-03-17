@@ -28,6 +28,7 @@ class GameObject {
 
     protected:
         Level_1* _app;
+        void giveDefaultName();
 };
 
 class ColoredDrawable: public SceneGraph::Drawable3D {

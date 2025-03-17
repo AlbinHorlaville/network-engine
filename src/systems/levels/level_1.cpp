@@ -77,7 +77,7 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
 
     /* Create the ground */
     auto* ground = new Cube(this, &_scene, {4.0f, 0.5f, 4.0f}, 0.f, 0xffffff_rgbf);
-    _objects.push_back(ground);
+    _objects[ground->_name] = ground;
 
     /* Create boxes with random colors */
     Deg hue = 42.0_degf;
@@ -86,7 +86,7 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
             for(Int k = 0; k != 5; ++k) {
                 Color3 color = Color3::fromHsv({hue += 137.5_degf, 0.75f, 0.9f});
                 auto* o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 1.f, color);
-                _objects.push_back(o);
+                _objects[o->_name] = o;
                 o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
                 o->_rigidBody->syncPose();
             }
@@ -141,9 +141,10 @@ void Level_1::drawEvent() {
     _pWorld->cleanWorld();
 
     // Remove object if their _rigidBody have been destroyed
-    for (GameObject *object : _objects) {
+    for (auto pair: _objects) {
+        GameObject* object = pair.second;
         if (!object->_rigidBody) {
-            _objects.erase(std::find(_objects.begin(), _objects.end(), object));
+            _objects.erase(object->_name);
             delete object;
         }
     }
@@ -168,7 +169,21 @@ void Level_1::drawEvent() {
     }
 
     // Render ImGui
-    _sceneTreeUI->DrawSceneTree();
+    //_sceneTreeUI->DrawSceneTree();
+    {
+        ImGui::Text("Hello, world!");
+        float _floatValue = 0.2f;
+        Color4 _clearColor = 0x72909aff_rgbaf;
+        ImGui::SliderFloat("Float", &_floatValue, 0.0f, 1.0f);
+        if(ImGui::ColorEdit3("Clear Color", _clearColor.data()))
+            GL::Renderer::setClearColor(_clearColor);
+        if(ImGui::Button("Test Window"))
+            std::cout << "Test Window" << std::endl;
+        if(ImGui::Button("Another Window"))
+            std::cout << "Another Window" << std::endl;
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+            1000.0/Double(ImGui::GetIO().Framerate), Double(ImGui::GetIO().Framerate));
+    }
     _imgui.drawFrame();
 
     swapBuffers();
@@ -203,7 +218,7 @@ void Level_1::pointerPressEvent(PointerEvent& event) {
 
     GameObject* projectile = _pProjectileManager->Shoot(this, &_scene, translate, direction);
     projectile->setMass(1000);
-    _objects.push_back(projectile);
+    _objects[projectile->_name] = projectile;
 
     event.setAccepted();
 }
