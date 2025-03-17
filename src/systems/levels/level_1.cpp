@@ -11,6 +11,7 @@
 #include "entities/primitives/Cube.h"
 #include "imgui.h"
 
+
 Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, NoCreate) {
     /* Try 8x MSAA, fall back to zero samples if not possible. Enable only 2x
        MSAA if we have enough DPI. */
@@ -25,6 +26,14 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
             create(conf, glConf.setSampleCount(0));
     }
 
+    _imgui = Magnum::ImGuiIntegration::Context(Vector2{windowSize()} / dpiScaling(),
+                                           windowSize(), framebufferSize());
+
+    GL::Renderer::setBlendEquation(GL::Renderer::BlendEquation::Add,
+    GL::Renderer::BlendEquation::Add);
+    GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha,
+    GL::Renderer::BlendFunction::OneMinusSourceAlpha);
+
     /* Camera setup */
     (*(_cameraRig = new Object3D{&_scene}))
         .translate(Vector3::yAxis(3.0f))
@@ -36,9 +45,6 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
         ->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
         .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 100.0f))
         .setViewport(GL::defaultFramebuffer.viewport().size());
-
-    _imgui = Magnum::ImGuiIntegration::Context(Vector2{windowSize()} / dpiScaling(),
-                                           windowSize(), framebufferSize());
 
     /* Create an instanced shader */
     _shader = Shaders::PhongGL{Shaders::PhongGL::Configuration{}
@@ -168,8 +174,20 @@ void Level_1::drawEvent() {
     }
 
     // Render ImGui
+    ImGui::SetNextWindowSize(ImVec2(1000, 500), ImGuiCond_FirstUseEver);
     _sceneTreeUI->DrawSceneTree();
+
+    GL::Renderer::enable(GL::Renderer::Feature::Blending);
+    GL::Renderer::enable(GL::Renderer::Feature::ScissorTest);
+    GL::Renderer::disable(GL::Renderer::Feature::FaceCulling);
+    GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
+
     _imgui.drawFrame();
+
+    GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
+    GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
+    GL::Renderer::disable(GL::Renderer::Feature::ScissorTest);
+    GL::Renderer::disable(GL::Renderer::Feature::Blending);
 
     swapBuffers();
     _timeline.nextFrame();
@@ -204,6 +222,5 @@ void Level_1::pointerPressEvent(PointerEvent& event) {
     GameObject* projectile = _pProjectileManager->Shoot(this, &_scene, translate, direction);
     projectile->setMass(1000);
     _objects.push_back(projectile);
-
     event.setAccepted();
 }
