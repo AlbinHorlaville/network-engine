@@ -11,8 +11,9 @@ SceneTree::SceneTree(std::map<std::string, GameObject*>* gameObjects) {
 }
 
 void SceneTree::DrawNode(SceneNode& node) {
-    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen;
-    if (node.children.size() > 0)
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow
+    | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+    if (node.children.size() == 0)
     {
         flags |= ImGuiTreeNodeFlags_Leaf;
     }
@@ -25,7 +26,12 @@ void SceneTree::DrawNode(SceneNode& node) {
 }
 
 void SceneTree::DrawSceneTree() {
-    ImGui::Begin("Scene Hierarchy");
+    bool open = true;
+    ImVec2 windowSize = ImGui::GetMainViewport()->Size;
+    ImGui::SetNextWindowPos(ImVec2(3, 3), ImGuiCond_Always, ImVec2(0.0f, 0.0f)); // Place window in top-left corner
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x/6.f, windowSize.y - 5.f)); // Set a dynamic size corresponding to parent window size
+
+    ImGui::Begin("Scene Hierarchy", &open, ImGuiWindowFlags_NoResize);
     std::vector<SceneNode> sceneChildrenNodes;
     for (auto const& pair : *_gameObjects) {
         sceneChildrenNodes.push_back(SceneNode(pair.second->_name, std::vector<SceneNode>{}));

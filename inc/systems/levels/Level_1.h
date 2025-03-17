@@ -68,7 +68,7 @@ class Level_1: public Platform::Application {
     Shaders::PhongGL _shader{NoCreate};
     Containers::Array<InstanceData> _boxInstanceData, _sphereInstanceData;
 
-    Magnum::ImGuiIntegration::Context _imgui{NoCreate};  // ImGui context
+    ImGuiIntegration::Context _imgui{NoCreate};  // ImGui context
 
     PhysicsWorld* _pWorld;
     ProjectileManager* _pProjectileManager;

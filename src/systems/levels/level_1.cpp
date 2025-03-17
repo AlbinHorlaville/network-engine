@@ -25,6 +25,14 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
             create(conf, glConf.setSampleCount(0));
     }
 
+    _imgui = Magnum::ImGuiIntegration::Context(Vector2{windowSize()} / dpiScaling(),
+                                           windowSize(), framebufferSize());
+
+    GL::Renderer::setBlendEquation(GL::Renderer::BlendEquation::Add,
+    GL::Renderer::BlendEquation::Add);
+    GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha,
+    GL::Renderer::BlendFunction::OneMinusSourceAlpha);
+
     /* Camera setup */
     (*(_cameraRig = new Object3D{&_scene}))
         .translate(Vector3::yAxis(3.0f))
@@ -169,22 +177,20 @@ void Level_1::drawEvent() {
     }
 
     // Render ImGui
-    //_sceneTreeUI->DrawSceneTree();
-    {
-        ImGui::Text("Hello, world!");
-        float _floatValue = 0.2f;
-        Color4 _clearColor = 0x72909aff_rgbaf;
-        ImGui::SliderFloat("Float", &_floatValue, 0.0f, 1.0f);
-        if(ImGui::ColorEdit3("Clear Color", _clearColor.data()))
-            GL::Renderer::setClearColor(_clearColor);
-        if(ImGui::Button("Test Window"))
-            std::cout << "Test Window" << std::endl;
-        if(ImGui::Button("Another Window"))
-            std::cout << "Another Window" << std::endl;
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-            1000.0/Double(ImGui::GetIO().Framerate), Double(ImGui::GetIO().Framerate));
-    }
+    ImGui::SetNextWindowSize(ImVec2(1000, 500), ImGuiCond_FirstUseEver);
+    _sceneTreeUI->DrawSceneTree();
+
+    GL::Renderer::enable(GL::Renderer::Feature::Blending);
+    GL::Renderer::enable(GL::Renderer::Feature::ScissorTest);
+    GL::Renderer::disable(GL::Renderer::Feature::FaceCulling);
+    GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
+
     _imgui.drawFrame();
+
+    GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
+    GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
+    GL::Renderer::disable(GL::Renderer::Feature::ScissorTest);
+    GL::Renderer::disable(GL::Renderer::Feature::Blending);
 
     swapBuffers();
     _timeline.nextFrame();
