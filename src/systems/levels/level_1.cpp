@@ -151,9 +151,9 @@ void Level_1::drawEvent() {
     // Remove object if their _rigidBody have been destroyed
     for (auto pair: _objects) {
         GameObject* object = pair.second;
-        if (!object->_rigidBody) {
+        if (object->_rigidBody->_bRigidBody->getWorldTransform().getOrigin().length() > 100.0) {
             _objects.erase(object->_name);
-            delete object;
+            //delete object; A REFAIRE
         }
     }
 

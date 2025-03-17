@@ -23,10 +23,10 @@ public:
     btRigidBody& rigidBody();
 
     void syncPose();
+    Containers::Pointer<btRigidBody> _bRigidBody;
 
 private:
     PhysicsWorld& _physicsWorld;
-    Containers::Pointer<btRigidBody> _bRigidBody;
 };
 
 

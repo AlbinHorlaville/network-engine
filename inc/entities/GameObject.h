@@ -22,7 +22,6 @@ class GameObject {
         RigidBody* _rigidBody;
 
         GameObject(std::string name) : _name(std::move(name)), _rigidBody(nullptr) {}
-        virtual ~GameObject() {delete _rigidBody;}
 
         virtual void setMass(float mass) = 0;
 

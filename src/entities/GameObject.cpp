@@ -23,4 +23,5 @@ void GameObject::giveDefaultName() {
     int number = (i < _name.size()) ? std::stoi(_name.substr(i)) + 1 : 1; // Incrément ou 1 si absent
 
     _name = base + std::to_string(number);
+    giveDefaultName();
 }
