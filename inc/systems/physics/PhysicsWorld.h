@@ -23,6 +23,9 @@ public:
     ~PhysicsWorld() = default;
 
     void setGravity(btVector3 gravity) const;
+
+    // Remove objects that are too far from the origin
+    void cleanWorld() const;
 };
 
 
