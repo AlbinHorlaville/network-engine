@@ -119,21 +119,9 @@ void Level_1::drawEvent() {
     if (_pressedKeys.count(KeyEvent::Key::E))
         _cameraRig->translateLocal(Vector3::yAxis(-moveSpeed * deltaTime));
 
-    /* Housekeeping: remove any objects which are far away from the origin */
-    for(Object3D* obj = _scene.children().first(); obj; )
-    {
-        Object3D* next = obj->nextSibling();
-        if(obj->transformation().translation().dot() > 100*100) {
-            if (auto* rigidBody = dynamic_cast<RigidBody*>(obj)) {
-                _pWorld->_bWorld->removeRigidBody(&rigidBody->rigidBody());  // Remove safely
-            }
-            delete obj;  // Now it's safe to delete
-        }
+    _pWorld->cleanWorld();
 
-        obj = next;
-    }
-
-    // Remove object if there _rigidBody have been destroyed
+    // Remove object if their _rigidBody have been destroyed
     for (GameObject *object : _objects) {
         if (!object->_rigidBody) {
             _objects.erase(std::find(_objects.begin(), _objects.end(), object));
