@@ -31,6 +31,8 @@
 #include <Magnum/Trade/MeshData.h>
 #include <list>
 #include <unordered_set>
+#include <systems/editor/SceneTree.h>
+#include "Magnum/ImGuiIntegration/Context.h"
 
 
 class GameObject;
@@ -66,6 +68,8 @@ class Level_1: public Platform::Application {
     Shaders::PhongGL _shader{NoCreate};
     Containers::Array<InstanceData> _boxInstanceData, _sphereInstanceData;
 
+    Magnum::ImGuiIntegration::Context _imgui{NoCreate};  // ImGui context
+
     PhysicsWorld* _pWorld;
     ProjectileManager* _pProjectileManager;
 
@@ -84,6 +88,8 @@ class Level_1: public Platform::Application {
 
     std::list<GameObject*> _objects;
     std::unordered_set<Key> _pressedKeys;
+
+    SceneTree* _sceneTreeUI;
 
 public:
     Containers::Array<InstanceData>& getBoxInstanceData() {

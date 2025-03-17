@@ -9,6 +9,7 @@
 #include "systems\levels\Level_1.h"
 #include "components\Rigidbody.h"
 #include "entities/primitives/Cube.h"
+#include "imgui.h"
 
 Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, NoCreate) {
     /* Try 8x MSAA, fall back to zero samples if not possible. Enable only 2x
@@ -35,6 +36,9 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
         ->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
         .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 100.0f))
         .setViewport(GL::defaultFramebuffer.viewport().size());
+
+    _imgui = Magnum::ImGuiIntegration::Context(Vector2{windowSize()} / dpiScaling(),
+                                           windowSize(), framebufferSize());
 
     /* Create an instanced shader */
     _shader = Shaders::PhongGL{Shaders::PhongGL::Configuration{}
@@ -89,6 +93,8 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
         }
     }
 
+    _sceneTreeUI = new SceneTree(&_objects);
+
     /* Loop at 60 Hz max */
     setSwapInterval(1);
     setMinimalLoopPeriod(16.0_msec);
@@ -107,6 +113,9 @@ Level_1::~Level_1() {
 
 void Level_1::drawEvent() {
     GL::defaultFramebuffer.clear(GL::FramebufferClear::Color|GL::FramebufferClear::Depth);
+
+    // Start new ImGui frame
+    _imgui.newFrame();
 
     constexpr float moveSpeed = 10.f; // Adjust speed as needed
     const float deltaTime = _timeline.previousFrameDuration();
@@ -157,6 +166,10 @@ void Level_1::drawEvent() {
         _sphere.setInstanceCount(_sphereInstanceData.size());
         _shader.draw(_sphere);
     }
+
+    // Render ImGui
+    _sceneTreeUI->DrawSceneTree();
+    _imgui.drawFrame();
 
     swapBuffers();
     _timeline.nextFrame();

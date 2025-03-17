@@ -19,7 +19,9 @@ find_package(Bullet REQUIRED Dynamics)
 set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 
 file(GLOB_RECURSE SOURCES src/*.cpp)  # Find all .cpp files in src/
-add_executable(MagnumBootstrap ${SOURCES})
+add_executable(MagnumBootstrap ${SOURCES}
+        inc/systems/editor/SceneTree.h
+        src/systems/editor/SceneTree.cpp)
 
 target_include_directories(MagnumBootstrap PUBLIC inc)
 set_property(TARGET MagnumBootstrap PROPERTY CXX_STANDARD 20)
