@@ -15,6 +15,8 @@ class GameObject;
 struct SceneNode {
     std::string name;
     std::vector<SceneNode> children;
+
+    SceneNode(std::string n, std::vector<SceneNode> c) : name(n), children(c) {}
 };
 
 class SceneTree {

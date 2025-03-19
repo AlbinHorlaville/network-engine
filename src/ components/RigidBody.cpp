@@ -2,7 +2,7 @@
 // Created by User on 14/03/2025.
 //
 
-#include "components\RigidBody.h"
+#include "components/RigidBody.h"
 
 class PhysicsWorld;
 

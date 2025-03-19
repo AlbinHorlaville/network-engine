@@ -6,8 +6,8 @@
 
 #include "systems/physics/PhysicsWorld.h"
 #include <systems/physics/ProjectileManager.h>
-#include "systems\levels\Level_1.h"
-#include "components\Rigidbody.h"
+#include "systems/levels/Level_1.h"
+#include "components/RigidBody.h"
 #include "entities/primitives/Cube.h"
 #include <Magnum/ImGuiIntegration/Context.hpp>
 
