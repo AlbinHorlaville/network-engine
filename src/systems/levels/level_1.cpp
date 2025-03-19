@@ -43,7 +43,7 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
         .rotateX(-25.0_degf);
     (_camera = new SceneGraph::Camera3D(*_cameraObject))
         ->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
-        .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 100.0f))
+        .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 99.0f))
         .setViewport(GL::defaultFramebuffer.viewport().size());
 
     _imgui = Magnum::ImGuiIntegration::Context(Vector2{windowSize()} / dpiScaling(),
@@ -150,12 +150,16 @@ void Level_1::drawEvent() {
     _pWorld->cleanWorld();
 
     // Remove object if their _rigidBody have been destroyed
-    for (auto pair: _objects) {
-        GameObject* object = pair.second;
-        if (object->_rigidBody->_bRigidBody->getWorldTransform().getOrigin().length() > 100.0) {
-            _objects.erase(object->_name);
-            //delete object; A REFAIRE
+    for (auto it = _objects.begin(); it != _objects.end(); ) {
+        GameObject* object = it->second;
+
+        if (object && object->_rigidBody && object->_rigidBody->_bRigidBody) {
+            if (object->_rigidBody->_bRigidBody->getWorldTransform().getOrigin().length() > 99.0) {
+                it = _objects.erase(it);
+                continue;
+            }
         }
+        ++it;
     }
 
     _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
