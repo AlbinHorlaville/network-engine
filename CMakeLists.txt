@@ -41,3 +41,6 @@ target_link_libraries(MagnumBootstrap PRIVATE
         BulletCollision
         LinearMath
         Bullet3Common)
+
+target_link_libraries(MagnumBootstrap PRIVATE enet)
+target_include_directories(MagnumBootstrap PRIVATE externals/enet6/include)
