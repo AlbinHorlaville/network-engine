@@ -13,10 +13,11 @@
 #include "Magnum/Platform/GlfwApplication.h"
 #include "Magnum/SceneGraph/Drawable.h"
 #include "systems/levels/Level_1.h"
+#include "../systems/network/Serializable.h"
 
 struct InstanceData;
 
-class GameObject {
+class GameObject : public Serializable{
     public:
         std::string _name;
         RigidBody* _rigidBody;
@@ -24,6 +25,8 @@ class GameObject {
         GameObject(std::string name) : _name(std::move(name)), _rigidBody(nullptr) {}
 
         virtual void setMass(float mass) = 0;
+        void serialize(std::ostream &ostr) const override;
+        void unserialize(std::istream &istr) const override;
 
     protected:
         Level_1* _app;
