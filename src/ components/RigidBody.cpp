@@ -6,19 +6,10 @@
 
 class PhysicsWorld;
 
-RigidBody::RigidBody(Object3D* parent, Float mass, btCollisionShape* bShape, PhysicsWorld& world): Object3D{parent}, _physicsWorld(world){
-    /* Calculate inertia so the object reacts as it should with
-     rotation and everything */
-    btVector3 bInertia(0.0f, 0.0f, 0.0f);
-    if(!Math::TypeTraits<Float>::equals(mass, 0.0f))
-        bShape->calculateLocalInertia(mass, bInertia);
-
-    /* Bullet rigid body setup */
-    auto* motionState = new BulletIntegration::MotionState{*this};
-    _bRigidBody.emplace(btRigidBody::btRigidBodyConstructionInfo{
-        mass, &motionState->btMotionState(), bShape, bInertia});
-    _bRigidBody->forceActivationState(DISABLE_DEACTIVATION);
-    _physicsWorld._bWorld->addRigidBody(_bRigidBody.get());
+RigidBody::RigidBody(Object3D* parent, Float mass, btCollisionShape* bShape, PhysicsWorld& world)
+    : Object3D{parent}, _bShape(bShape), _physicsWorld(world)
+{
+    createBtRigidBody(mass);
 }
 
 RigidBody::~RigidBody() {
@@ -31,4 +22,19 @@ btRigidBody& RigidBody::rigidBody() {
 
 void RigidBody::syncPose() {
     _bRigidBody->setWorldTransform(btTransform(transformationMatrix()));
+}
+
+void RigidBody::createBtRigidBody(Float mass) {
+    /* Calculate inertia so the object reacts as it should with
+     rotation and everything */
+    btVector3 bInertia(0.0f, 0.0f, 0.0f);
+    if(!Math::TypeTraits<Float>::equals(mass, 0.0f))
+        _bShape->calculateLocalInertia(mass, bInertia);
+
+    /* Bullet rigid body setup */
+    auto* motionState = new BulletIntegration::MotionState{*this};
+    _bRigidBody.emplace(btRigidBody::btRigidBodyConstructionInfo{
+        mass, &motionState->btMotionState(), _bShape, bInertia});
+    _bRigidBody->forceActivationState(DISABLE_DEACTIVATION);
+    _physicsWorld._bWorld->addRigidBody(_bRigidBody.get());
 }

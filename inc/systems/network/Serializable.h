@@ -10,7 +10,7 @@
 class Serializable {
   public:
     virtual void serialize(std::ostream& ostr) const = 0;
-    virtual void unserialize(std::istream& istr) const = 0;
+    virtual void unserialize(std::istream& istr) = 0;
     virtual ~Serializable() = default;
 };
 

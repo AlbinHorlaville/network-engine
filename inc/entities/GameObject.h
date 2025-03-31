@@ -17,16 +17,19 @@
 
 struct InstanceData;
 
-class GameObject : public Serializable{
+class GameObject : public Serializable {
     public:
         std::string _name;
+        btVector3 _location;
+        btQuaternion _rotation;
+        float _mass;
         RigidBody* _rigidBody;
 
-        GameObject(std::string name) : _name(std::move(name)), _rigidBody(nullptr) {}
+        GameObject(std::string name, float m) : _name(std::move(name)), _mass(m), _rigidBody(nullptr) {}
 
         virtual void setMass(float mass) = 0;
-        void serialize(std::ostream &ostr) const override;
-        void unserialize(std::istream &istr) const override;
+        void serialize(std::ostream &ostr) const override = 0;
+        void unserialize(std::istream &istr) override = 0;
 
     protected:
         Level_1* _app;

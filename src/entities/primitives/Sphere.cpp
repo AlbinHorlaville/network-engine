@@ -5,9 +5,8 @@
 #include "entities/primitives/Sphere.h"
 
 Sphere::Sphere(Level_1* app, std::string name, Object3D *parent, float scale, float mass, const Color3& color):
-GameObject(std::move(name)), _collisionShape(btSphereShape{scale}) {
+GameObject(std::move(name), mass), _collisionShape(btSphereShape{scale}) {
     _app = app;
-    _mass = mass;
     _scale = scale;
 
     // Change name if it already exists
@@ -22,9 +21,8 @@ GameObject(std::move(name)), _collisionShape(btSphereShape{scale}) {
 }
 
 Sphere::Sphere(Level_1* app, Object3D* parent, const float scale, const float mass, const Color3& color):
-    GameObject("Sphere"), _collisionShape(btSphereShape{scale}) {
+    GameObject("Sphere", mass), _collisionShape(btSphereShape{scale}) {
     _app = app;
-    _mass = mass;
     _scale = scale;
 
     // Change name if it already exists
@@ -62,4 +60,25 @@ void Sphere::setMass(const float mass) {
 
     // Set mass properties with mass and inertia tensor
     this->_rigidBody->rigidBody().setMassProps(_mass, inertia);
+}
+
+void Sphere::serialize(std::ostream &ostr) const {
+    GameObject::serialize(ostr);
+
+    // Serialize Scale
+    ostr.write(reinterpret_cast<const char*>(&_scale), sizeof(float));
+
+    // Serialize Mass
+    ostr.write(reinterpret_cast<const char*>(&_mass), sizeof(float));
+}
+
+void Sphere::unserialize(std::istream &istr) override {
+    GameObject::unserialize(istr);
+
+    // Unserialize Scale
+    float x, y, z;
+    istr.read(reinterpret_cast<char*>(&_scale), sizeof(float));
+
+    // Unserialize Mass
+    istr.read(reinterpret_cast<char*>(&_mass), sizeof(float));
 }

@@ -17,11 +17,12 @@ public:
 
     void setScale(btVector3 newScale);
     void setMass(float mass) override;
+    void serialize(std::ostream &ostr) const override;
+    void unserialize(std::istream &istr) override;
 
 private:
     btBoxShape _collisionShape;
     btVector3 _scale;
-    float _mass;
 };
 
 

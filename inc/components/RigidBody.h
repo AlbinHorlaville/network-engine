@@ -18,6 +18,8 @@ using Object3D = SceneGraph::Object<SceneGraph::MatrixTransformation3D>;
 
 class RigidBody : public Object3D {
 public:
+    btCollisionShape* _bShape;
+
     RigidBody(Object3D* parent, Float mass, btCollisionShape* bShape, PhysicsWorld& world);
     ~RigidBody();
     btRigidBody& rigidBody();
@@ -27,6 +29,7 @@ public:
 
 private:
     PhysicsWorld& _physicsWorld;
+    void createBtRigidBody(Float mass);
 };
 
 

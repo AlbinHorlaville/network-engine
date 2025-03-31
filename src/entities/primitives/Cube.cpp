@@ -8,9 +8,8 @@
 #include "Magnum/Primitives/Cube.h"
 
 Cube::Cube(Level_1* app, std::string name, Object3D *parent, const btVector3 scale, float mass, const Color3& color):
-    GameObject(std::move(name)), _collisionShape(btBoxShape{scale}) {
+    GameObject(std::move(name), mass), _collisionShape(btBoxShape{scale}) {
     _app = app;
-    _mass = mass;
     _scale = scale;
 
     // Change name if it already exists
@@ -25,9 +24,8 @@ Cube::Cube(Level_1* app, std::string name, Object3D *parent, const btVector3 sca
 }
 
 Cube::Cube(Level_1* app, Object3D* parent, const btVector3 scale, const float mass, const Color3& color):
-    GameObject("Cube"), _collisionShape(btBoxShape{scale}) {
+    GameObject("Cube", mass), _collisionShape(btBoxShape{scale}) {
     _app = app;
-    _mass = mass;
     _scale = scale;
 
     // Change name if it already exists
@@ -66,4 +64,24 @@ void Cube::setMass(const float mass) {
 
     // Set mass properties with mass and inertia tensor
     this->_rigidBody->rigidBody().setMassProps(_mass, inertia);
+}
+
+void Cube::serialize(std::ostream &ostr) const {
+    GameObject::serialize(ostr);
+
+    // Serialize Scale
+    ostr.write(reinterpret_cast<const char*>(&_scale.x()), sizeof(float));
+    ostr.write(reinterpret_cast<const char*>(&_scale.y()), sizeof(float));
+    ostr.write(reinterpret_cast<const char*>(&_scale.z()), sizeof(float));
+}
+
+void Cube::unserialize(std::istream &istr) override {
+    GameObject::unserialize(istr);
+
+    // Unserialize Scale
+    float x, y, z;
+    istr.read(reinterpret_cast<char*>(&x), sizeof(float));
+    istr.read(reinterpret_cast<char*>(&y), sizeof(float));
+    istr.read(reinterpret_cast<char*>(&z), sizeof(float));
+    _scale = btVector3(x, y, z);
 }

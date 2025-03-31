@@ -17,11 +17,12 @@ public:
 
     void setScale(float newScale);
     void setMass(float mass) override;
+    void serialize(std::ostream &ostr) const override;
+    void unserialize(std::istream &istr) override;
 
 private:
     btSphereShape _collisionShape;
     float _scale;
-    float _mass;
 };
 
 #endif //SPHERE_H
