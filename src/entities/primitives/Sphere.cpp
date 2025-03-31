@@ -72,11 +72,10 @@ void Sphere::serialize(std::ostream &ostr) const {
     ostr.write(reinterpret_cast<const char*>(&_mass), sizeof(float));
 }
 
-void Sphere::unserialize(std::istream &istr) override {
+void Sphere::unserialize(std::istream &istr) {
     GameObject::unserialize(istr);
 
     // Unserialize Scale
-    float x, y, z;
     istr.read(reinterpret_cast<char*>(&_scale), sizeof(float));
 
     // Unserialize Mass

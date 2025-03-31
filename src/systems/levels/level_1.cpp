@@ -85,7 +85,7 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
     _drawables = new SceneGraph::DrawableGroup3D();
 
     /* Create the ground */
-    auto* ground = new Cube(this, &_scene, {4.0f, 0.5f, 4.0f}, 0.f, 0xffffff_rgbf);
+    auto* ground = new Cube(this, "Floor", &_scene, {4.0f, 0.5f, 4.0f}, 0.f, 0xffffff_rgbf);
     _objects[ground->_name] = ground;
 
     /* Create boxes with random colors */

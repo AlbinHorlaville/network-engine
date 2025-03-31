@@ -75,7 +75,7 @@ void Cube::serialize(std::ostream &ostr) const {
     ostr.write(reinterpret_cast<const char*>(&_scale.z()), sizeof(float));
 }
 
-void Cube::unserialize(std::istream &istr) override {
+void Cube::unserialize(std::istream &istr) {
     GameObject::unserialize(istr);
 
     // Unserialize Scale
