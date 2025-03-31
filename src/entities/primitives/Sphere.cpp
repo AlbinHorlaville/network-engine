@@ -62,6 +62,10 @@ void Sphere::setMass(const float mass) {
     this->_rigidBody->rigidBody().setMassProps(_mass, inertia);
 }
 
+void Sphere::updateDataFromBullet() {
+    GameObject::updateDataFromBullet();
+}
+
 void Sphere::serialize(std::ostream &ostr) const {
     GameObject::serialize(ostr);
 

@@ -66,6 +66,10 @@ void Cube::setMass(const float mass) {
     this->_rigidBody->rigidBody().setMassProps(_mass, inertia);
 }
 
+void Cube::updateDataFromBullet() {
+    GameObject::updateDataFromBullet();
+}
+
 void Cube::serialize(std::ostream &ostr) const {
     GameObject::serialize(ostr);
 

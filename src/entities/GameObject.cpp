@@ -26,6 +26,12 @@ void GameObject::giveDefaultName() {
     giveDefaultName();
 }
 
+void GameObject::updateDataFromBullet() {
+    btTransform transform =  _rigidBody->_bRigidBody->getWorldTransform();
+    _location = transform.getOrigin();
+    _rotation = transform.getRotation();
+}
+
 void GameObject::serialize(std::ostream &ostr) const {
     // TODO : Sérialiser l'ID d'objet.
 

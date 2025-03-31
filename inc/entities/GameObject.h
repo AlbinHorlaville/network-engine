@@ -28,6 +28,7 @@ class GameObject : public Serializable {
         GameObject(std::string name, float m) : _name(std::move(name)), _mass(m), _rigidBody(nullptr) {}
 
         virtual void setMass(float mass) = 0;
+        virtual void updateDataFromBullet();
         void serialize(std::ostream &ostr) const override = 0;
         void unserialize(std::istream &istr) override = 0;
 

@@ -22,6 +22,7 @@ struct SceneNode {
 class SceneTree {
 
 public:
+    GameObject* _selectedObject = nullptr;
     SceneTree() = delete;
     SceneTree(std::map<std::string, GameObject*>* gameObjects);
     ~SceneTree() = default;
@@ -34,7 +35,6 @@ private:
     void DrawNode(SceneNode& node);
 
     std::map<std::string, GameObject *> *_gameObjects;
-
 };
 
 #endif //SCENETREE_H

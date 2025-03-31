@@ -18,6 +18,9 @@ void SceneTree::DrawNode(SceneNode& node) {
         flags |= ImGuiTreeNodeFlags_Leaf;
     }
     if (ImGui::TreeNodeEx(node.name.c_str(), flags)) { // Expandable node
+        if (ImGui::IsItemClicked()) {  // 🔹 Détection du clic
+            _selectedObject = (*_gameObjects)[node.name];  // 🔹 Mise à jour de l'objet sélectionné
+        }
         for (auto& child : node.children) {
             DrawNode(child); // Recursive call for children
         }
@@ -39,5 +42,4 @@ void SceneTree::DrawSceneTree() {
     DrawNode(root);
 
     ImGui::End();
-
 }

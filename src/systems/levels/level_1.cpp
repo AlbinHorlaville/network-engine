@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <entities/primitives/Sphere.h>
 
 #include "systems/physics/PhysicsWorld.h"
 #include <systems/physics/ProjectileManager.h>
@@ -152,7 +153,7 @@ void Level_1::drawEvent() {
     // Remove object if their _rigidBody have been destroyed
     for (auto it = _objects.begin(); it != _objects.end(); ) {
         GameObject* object = it->second;
-
+        object->updateDataFromBullet();
         if (object && object->_rigidBody && object->_rigidBody->_bRigidBody) {
             if (object->_rigidBody->_bRigidBody->getWorldTransform().getOrigin().length() > 99.0) {
                 it = _objects.erase(it);
@@ -160,6 +161,11 @@ void Level_1::drawEvent() {
             }
         }
         ++it;
+    }
+
+    if (_objects.contains("Cube")) {
+        btVector3 loc = _objects["Cube"]->_location;
+        std::cout << static_cast<int>(loc.x()) << " " << static_cast<int>(loc.y()) << " " << static_cast<int>(loc.z()) << std::endl;
     }
 
     _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
@@ -183,6 +189,40 @@ void Level_1::drawEvent() {
 
     // Render ImGui
     _sceneTreeUI->DrawSceneTree();
+
+    // 🔹 Fenêtre d'inspection de l'objet sélectionné
+    if (_sceneTreeUI->_selectedObject) {
+        ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+        ImGui::Text("Name: %s", _sceneTreeUI->_selectedObject->_name.c_str());
+
+        ImGui::Text("Position: (%.2f, %.2f, %.2f)",
+                    _sceneTreeUI->_selectedObject->_location.x(),
+                    _sceneTreeUI->_selectedObject->_location.y(),
+                    _sceneTreeUI->_selectedObject->_location.z());
+
+        ImGui::Text("Rotation: (%.2f, %.2f, %.2f, %.2f)",
+            _sceneTreeUI->_selectedObject->_rotation.x(),
+            _sceneTreeUI->_selectedObject->_rotation.y(),
+            _sceneTreeUI->_selectedObject->_rotation.z(),
+            _sceneTreeUI->_selectedObject->_rotation.w());
+
+        if (auto cube = dynamic_cast<Cube*>(_sceneTreeUI->_selectedObject)) {
+            ImGui::Text("Scale : (%.2f, %.2f, %.2f)",
+                cube->_scale.x(),
+                cube->_scale.y(),
+                cube->_scale.z());
+        }
+        if (auto sphere = dynamic_cast<Sphere*>(_sceneTreeUI->_selectedObject)) {
+            ImGui::Text("Scale : %.2f",
+                sphere->_scale);
+        }
+
+        ImGui::Text("Mass : %.2f",
+            _sceneTreeUI->_selectedObject->_mass);
+
+        ImGui::End();
+    }
 
     GL::Renderer::enable(GL::Renderer::Feature::Blending);
     GL::Renderer::enable(GL::Renderer::Feature::ScissorTest);
