@@ -20,16 +20,17 @@ class RigidBody : public Object3D {
 public:
     btCollisionShape* _bShape;
 
+    RigidBody(Object3D* parent, btCollisionShape* bShape, PhysicsWorld& world);
     RigidBody(Object3D* parent, Float mass, btCollisionShape* bShape, PhysicsWorld& world);
     ~RigidBody();
     btRigidBody& rigidBody();
+    void createBtRigidBody(Float mass);
 
     void syncPose();
     Containers::Pointer<btRigidBody> _bRigidBody;
 
 private:
     PhysicsWorld& _physicsWorld;
-    void createBtRigidBody(Float mass);
 };
 
 

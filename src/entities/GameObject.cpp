@@ -4,6 +4,7 @@
 
 #include "entities/GameObject.h"
 
+#include "../../cmake-build-debug/_deps/bullet-src/examples/ThirdPartyLibs/clsocket/src/Host.h"
 #include "Corrade/Utility/String.h"
 
 
@@ -33,7 +34,11 @@ void GameObject::updateDataFromBullet() {
 }
 
 void GameObject::serialize(std::ostream &ostr) const {
-    // TODO : Sérialiser l'ID d'objet.
+    // Serialize the object id
+    ostr.write(reinterpret_cast<const char*>(&_id), sizeof(uint32_t));
+
+    // Serialize the type of object (Cube, Sphere, ...)
+    ostr.write(reinterpret_cast<const char*>(&_type), sizeof(ObjectType));
 
     // Serialize the name of this object
     size_t length = _name.size();
@@ -56,7 +61,8 @@ void GameObject::serialize(std::ostream &ostr) const {
 }
 
 void GameObject::unserialize(std::istream &istr) {
-    // TODO : Déserialiser l'ID d'objet
+    // La désérialisation de l'id se fait avant l'appel de cette méthode
+
     size_t length;
     istr.read(reinterpret_cast<char*>(&length), sizeof(size_t));
     istr.read(&_name[0], length);  // Lit les caractères du fichier

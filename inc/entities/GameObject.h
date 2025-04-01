@@ -17,8 +17,15 @@
 
 struct InstanceData;
 
+enum ObjectType {
+    CUBE,
+    SPHERE,
+};
+
 class GameObject : public Serializable {
     public:
+        uint32_t _id = 0;
+        ObjectType _type;
         std::string _name;
         btVector3 _location;
         btQuaternion _rotation;
@@ -39,7 +46,8 @@ class GameObject : public Serializable {
 
 class ColoredDrawable: public SceneGraph::Drawable3D {
     public:
-        explicit ColoredDrawable(Object3D& object, Containers::Array<InstanceData>& instanceData, const Color3& color, const Matrix4& primitiveTransformation, SceneGraph::DrawableGroup3D* drawables): SceneGraph::Drawable3D{object, drawables}, _instanceData(instanceData), _color{color}, _primitiveTransformation{primitiveTransformation} {}
+        explicit ColoredDrawable(Object3D& object, Containers::Array<InstanceData>& instanceData, const Color3& color, const Matrix4& primitiveTransformation, SceneGraph::DrawableGroup3D* drawables):
+            SceneGraph::Drawable3D{object, drawables}, _instanceData(instanceData), _color{color}, _primitiveTransformation{primitiveTransformation} {}
 
     private:
         void draw(const Matrix4& transformation, SceneGraph::Camera3D&) override {

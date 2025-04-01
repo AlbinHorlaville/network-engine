@@ -6,6 +6,13 @@
 
 class PhysicsWorld;
 
+// Constructeur à appeler avant la déserialisation pour reconstruire l'objet
+RigidBody::RigidBody(Object3D* parent, btCollisionShape* bShape, PhysicsWorld& world)
+    : Object3D{parent}, _bShape(bShape), _physicsWorld(world)
+{
+    createBtRigidBody(1);
+}
+
 RigidBody::RigidBody(Object3D* parent, Float mass, btCollisionShape* bShape, PhysicsWorld& world)
     : Object3D{parent}, _bShape(bShape), _physicsWorld(world)
 {
@@ -25,6 +32,9 @@ void RigidBody::syncPose() {
 }
 
 void RigidBody::createBtRigidBody(Float mass) {
+    if (_physicsWorld._bWorld->getCollisionObjectArray().findLinearSearch(_bRigidBody.get()) != _physicsWorld._bWorld->getCollisionObjectArray().size()) {
+        _physicsWorld._bWorld->removeRigidBody(_bRigidBody.get());
+    }
     /* Calculate inertia so the object reacts as it should with
      rotation and everything */
     btVector3 bInertia(0.0f, 0.0f, 0.0f);

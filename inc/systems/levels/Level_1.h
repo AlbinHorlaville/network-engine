@@ -32,6 +32,8 @@
 #include <map>
 #include <unordered_set>
 #include <systems/editor/SceneTree.h>
+#include <systems/network/Serializable.h>
+#include "systems/network/LinkingContext.h"
 #include "Magnum/ImGuiIntegration/Context.h"
 
 
@@ -52,12 +54,14 @@ struct InstanceData {
     Color3 color;
 };
 
-class Level_1: public Platform::Application {
+class Level_1: public Platform::Application, public Serializable {
     public:
       explicit Level_1(const Arguments &arguments);
       ~Level_1();
 
     private:
+    void serialize(std::ostream &ostr) const override;
+    void unserialize(std::istream &istr) override;
     void drawEvent() override;
     void keyPressEvent(KeyEvent& event) override;
     void keyReleaseEvent(KeyEvent& event) override;
@@ -94,6 +98,7 @@ class Level_1: public Platform::Application {
     std::unordered_set<Key> _pressedKeys;
 
     SceneTree* _sceneTreeUI;
+    LinkingContext _linkingContext;
 
 public:
     std::map<std::string, GameObject *> const& getObjects() const {

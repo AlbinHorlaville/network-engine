@@ -11,6 +11,7 @@ Cube::Cube(Level_1* app, std::string name, Object3D *parent, const btVector3 sca
     GameObject(std::move(name), mass), _collisionShape(btBoxShape{scale}) {
     _app = app;
     _scale = scale;
+    _type = CUBE;
 
     // Change name if it already exists
     giveDefaultName();
@@ -27,6 +28,7 @@ Cube::Cube(Level_1* app, Object3D* parent, const btVector3 scale, const float ma
     GameObject("Cube", mass), _collisionShape(btBoxShape{scale}) {
     _app = app;
     _scale = scale;
+    _type = CUBE;
 
     // Change name if it already exists
     giveDefaultName();
@@ -35,6 +37,23 @@ Cube::Cube(Level_1* app, Object3D* parent, const btVector3 scale, const float ma
     this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
 
     // Appearance
+    new ColoredDrawable{*(_rigidBody), _app->getBoxInstanceData(), color,
+    Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
+}
+
+Cube::Cube(Level_1* app, Object3D* parent):
+    GameObject("None", 1), _scale(btVector3(1, 1, 1)), _collisionShape(btBoxShape{_scale}) {
+    _app = app;
+    _type = CUBE;
+
+    // Change name if it already exists
+    giveDefaultName();
+
+    // Physics
+    this->_rigidBody = new RigidBody{parent, &_collisionShape, _app->getWorld()};
+
+    // Appearance
+    Color3 color = Color3(1, 1, 1);
     new ColoredDrawable{*(_rigidBody), _app->getBoxInstanceData(), color,
     Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }
@@ -88,4 +107,10 @@ void Cube::unserialize(std::istream &istr) {
     istr.read(reinterpret_cast<char*>(&y), sizeof(float));
     istr.read(reinterpret_cast<char*>(&z), sizeof(float));
     _scale = btVector3(x, y, z);
+
+    // Reconstruire le RigidBody
+    _rigidBody->createBtRigidBody(_mass);
+    setScale(_scale);
+    _rigidBody->translate(Vector3(_location));
+    _rigidBody->rotate(Quaternion(_rotation));
 }

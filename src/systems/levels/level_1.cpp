@@ -2,7 +2,10 @@
 // Created by User on 14/03/2025.
 //
 
+#include <fstream>
 #include <iostream>
+#include <bits/fs_fwd.h>
+#include <bits/fs_path.h>
 #include <entities/primitives/Sphere.h>
 
 #include "systems/physics/PhysicsWorld.h"
@@ -99,6 +102,8 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
                 _objects[o->_name] = o;
                 o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
                 o->_rigidBody->syncPose();
+                // Register o in the Linking Context
+                _linkingContext.Register(o);
             }
         }
     }
@@ -155,17 +160,15 @@ void Level_1::drawEvent() {
         GameObject* object = it->second;
         object->updateDataFromBullet();
         if (object && object->_rigidBody && object->_rigidBody->_bRigidBody) {
-            if (object->_rigidBody->_bRigidBody->getWorldTransform().getOrigin().length() > 99.0) {
+            if (object->_rigidBody->_bRigidBody->getWorldTransform().getOrigin().length() > 99.0f) {
+                if (_sceneTreeUI->_selectedObject == object) {
+                    _sceneTreeUI->_selectedObject = nullptr;
+                }
                 it = _objects.erase(it);
                 continue;
             }
         }
         ++it;
-    }
-
-    if (_objects.contains("Cube")) {
-        btVector3 loc = _objects["Cube"]->_location;
-        std::cout << static_cast<int>(loc.x()) << " " << static_cast<int>(loc.y()) << " " << static_cast<int>(loc.z()) << std::endl;
     }
 
     _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
@@ -197,29 +200,29 @@ void Level_1::drawEvent() {
         ImGui::Text("Name: %s", _sceneTreeUI->_selectedObject->_name.c_str());
 
         ImGui::Text("Position: (%.2f, %.2f, %.2f)",
-                    _sceneTreeUI->_selectedObject->_location.x(),
-                    _sceneTreeUI->_selectedObject->_location.y(),
-                    _sceneTreeUI->_selectedObject->_location.z());
+                    static_cast<double>(_sceneTreeUI->_selectedObject->_location.x()),
+                    static_cast<double>(_sceneTreeUI->_selectedObject->_location.y()),
+                    static_cast<double>(_sceneTreeUI->_selectedObject->_location.z()));
 
         ImGui::Text("Rotation: (%.2f, %.2f, %.2f, %.2f)",
-            _sceneTreeUI->_selectedObject->_rotation.x(),
-            _sceneTreeUI->_selectedObject->_rotation.y(),
-            _sceneTreeUI->_selectedObject->_rotation.z(),
-            _sceneTreeUI->_selectedObject->_rotation.w());
+            static_cast<double>(_sceneTreeUI->_selectedObject->_rotation.x()),
+            static_cast<double>(_sceneTreeUI->_selectedObject->_rotation.y()),
+            static_cast<double>(_sceneTreeUI->_selectedObject->_rotation.z()),
+            static_cast<double>(_sceneTreeUI->_selectedObject->_rotation.w()));
 
         if (auto cube = dynamic_cast<Cube*>(_sceneTreeUI->_selectedObject)) {
             ImGui::Text("Scale : (%.2f, %.2f, %.2f)",
-                cube->_scale.x(),
-                cube->_scale.y(),
-                cube->_scale.z());
+                static_cast<double>(cube->_scale.x()),
+                static_cast<double>(cube->_scale.y()),
+                static_cast<double>(cube->_scale.z()));
         }
         if (auto sphere = dynamic_cast<Sphere*>(_sceneTreeUI->_selectedObject)) {
             ImGui::Text("Scale : %.2f",
-                sphere->_scale);
+                static_cast<double>(sphere->_scale));
         }
 
         ImGui::Text("Mass : %.2f",
-            _sceneTreeUI->_selectedObject->_mass);
+            static_cast<double>(_sceneTreeUI->_selectedObject->_mass));
 
         ImGui::End();
     }
@@ -243,6 +246,25 @@ void Level_1::drawEvent() {
 
 void Level_1::keyPressEvent(KeyEvent& event) {
     _pressedKeys.insert(event.key());
+
+    // Sérialiser tous les objets
+    if (event.key() == Key::U) {
+        std::ofstream fileOut("objects.bin", std::ios::binary);
+        serialize(fileOut);
+        fileOut.close();
+    }
+
+    // Désérialiser tous les objets
+    if (event.key() == Key::I) {
+        std::ifstream fileIn("objects.bin", std::ios::binary);
+        if (fileIn) {  // Vérifie si le fichier a été ouvert avec succès
+            unserialize(fileIn);
+        } else {
+            std::cerr << "Erreur : le fichier objects.bin n'existe pas." << std::endl;
+        }
+        fileIn.close();
+    }
+
     event.setAccepted();
 }
 
@@ -286,3 +308,45 @@ void Level_1::pointerMoveEvent(PointerMoveEvent& event) {
 void Level_1::scrollEvent(ScrollEvent& event) {
     if(_imgui.handleScrollEvent(event)){}
 }
+
+void Level_1::serialize(std::ostream &ostr) const {
+    for (auto pair : _objects) {
+        pair.second->serialize(ostr);
+    }
+}
+
+void Level_1::unserialize(std::istream &istr) {
+    while(!istr.eof()) {
+        // Désérialiser l'ID d'objet.
+        uint32_t id;
+        istr.read(reinterpret_cast<char*>(&id), sizeof(uint32_t));
+
+        GameObject* obj = _linkingContext.GetLocalObject(id);
+        if (obj) { // L'objet est trouvé
+            ObjectType type;
+            istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
+            obj->unserialize(istr);
+        }
+        else { // L'objet doit être créé
+            ObjectType type;
+            istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
+            switch(type) {
+                case CUBE: {
+                    auto cube = new Cube(this, &_scene);
+                    cube->unserialize(istr);
+                    _objects[cube->_name] = cube;
+                    _linkingContext.Register(cube);
+                    break;
+                }
+                case SPHERE: {
+                    auto* sphere = new Sphere(this, &_scene);
+                    sphere->unserialize(istr);
+                    _objects[sphere->_name] = sphere;
+                    _linkingContext.Register(sphere);
+                    break;
+                }
+            }
+        }
+    }
+}
+

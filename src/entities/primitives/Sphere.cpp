@@ -8,6 +8,7 @@ Sphere::Sphere(Level_1* app, std::string name, Object3D *parent, float scale, fl
 GameObject(std::move(name), mass), _collisionShape(btSphereShape{scale}) {
     _app = app;
     _scale = scale;
+    _type = SPHERE;
 
     // Change name if it already exists
     giveDefaultName();
@@ -24,6 +25,7 @@ Sphere::Sphere(Level_1* app, Object3D* parent, const float scale, const float ma
     GameObject("Sphere", mass), _collisionShape(btSphereShape{scale}) {
     _app = app;
     _scale = scale;
+    _type = SPHERE;
 
     // Change name if it already exists
     giveDefaultName();
@@ -32,6 +34,23 @@ Sphere::Sphere(Level_1* app, Object3D* parent, const float scale, const float ma
     this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
 
     // Appearance
+    new ColoredDrawable{*(_rigidBody), _app->getSphereInstanceData(), color,
+    Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
+}
+
+Sphere::Sphere(Level_1* app, Object3D* parent):
+    GameObject("None", 1), _scale(1), _collisionShape(btSphereShape{_scale}) {
+    _app = app;
+    _type = CUBE;
+
+    // Change name if it already exists
+    giveDefaultName();
+
+    // Physics
+    this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
+
+    // Appearance
+    Color3 color = Color3(1, 1, 1);
     new ColoredDrawable{*(_rigidBody), _app->getSphereInstanceData(), color,
     Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }
@@ -71,9 +90,6 @@ void Sphere::serialize(std::ostream &ostr) const {
 
     // Serialize Scale
     ostr.write(reinterpret_cast<const char*>(&_scale), sizeof(float));
-
-    // Serialize Mass
-    ostr.write(reinterpret_cast<const char*>(&_mass), sizeof(float));
 }
 
 void Sphere::unserialize(std::istream &istr) {
@@ -82,6 +98,9 @@ void Sphere::unserialize(std::istream &istr) {
     // Unserialize Scale
     istr.read(reinterpret_cast<char*>(&_scale), sizeof(float));
 
-    // Unserialize Mass
-    istr.read(reinterpret_cast<char*>(&_mass), sizeof(float));
+    // Reconstruire le RigidBody
+    _rigidBody->createBtRigidBody(_mass);
+    setScale(_scale);
+    _rigidBody->translate(Vector3(_location));
+    _rigidBody->rotate(Quaternion(_rotation));
 }
