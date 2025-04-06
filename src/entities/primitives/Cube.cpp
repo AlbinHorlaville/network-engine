@@ -45,27 +45,33 @@ Cube::Cube(Level_1* app, Object3D* parent):
     GameObject("None", 1), _scale(btVector3(1, 1, 1)), _collisionShape(btBoxShape{_scale}) {
     _app = app;
     _type = CUBE;
+    _parent = parent;
 
     // Change name if it already exists
     giveDefaultName();
-
-    // Physics
-    this->_rigidBody = new RigidBody{parent, &_collisionShape, _app->getWorld()};
-
-    // Appearance
-    Color3 color = Color3(1, 1, 1);
-    new ColoredDrawable{*(_rigidBody), _app->getBoxInstanceData(), color,
-    Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }
 
 void Cube::setScale(btVector3 newScale) {
     _scale = newScale;
 
-    // Remove old shape and add a new one using unique_ptr
-    _collisionShape = btBoxShape{_scale};  // Use unique_ptr to manage the new shape
-    this->_rigidBody->rigidBody().setCollisionShape(&_collisionShape);  // Get the raw pointer for the RigidBody
-    // Sync pose to ensure the new shape is aligned correctly with the existing body
-    this->_rigidBody->syncPose();
+    // Créer un nouveau shape avec make_unique
+    _collisionShape = btBoxShape{_scale};
+    _rigidBody->rigidBody().setCollisionShape(&_collisionShape);
+
+    // Recalculer l'inertie si le corps est dynamique
+    btScalar mass = _rigidBody->rigidBody().getInvMass() == 0 ? 0 : 1.0 / _rigidBody->rigidBody().getInvMass();
+    btVector3 inertia(0, 0, 0);
+    if (mass > 0.f) {
+        _collisionShape.calculateLocalInertia(mass, inertia);
+    }
+    _rigidBody->rigidBody().setMassProps(mass, inertia);
+    _rigidBody->rigidBody().updateInertiaTensor();
+
+    // Mettre à jour la matrice de transformation graphique
+    _rigidBody->setTransformation(Matrix4::scaling(Vector3{_scale}));
+
+    // Réactiver le corps rigide
+    _rigidBody->rigidBody().activate();
 }
 
 void Cube::setMass(const float mass) {
@@ -81,8 +87,14 @@ void Cube::setMass(const float mass) {
     // Create the inertia tensor (diagonal components for a non-uniformly scaled cube)
     const btVector3 inertia(I_x, I_y, I_z);
 
-    // Set mass properties with mass and inertia tensor
-    this->_rigidBody->rigidBody().setMassProps(_mass, inertia);
+    // Désactiver le rigid body avant modification
+    _rigidBody->rigidBody().setActivationState(DISABLE_SIMULATION);
+
+    // Appliquer la nouvelle masse et l'inertie
+    _rigidBody->rigidBody().setMassProps(_mass, inertia);
+
+    // Réactiver le rigid body
+    _rigidBody->rigidBody().setActivationState(ACTIVE_TAG);
 }
 
 void Cube::updateDataFromBullet() {
@@ -109,8 +121,23 @@ void Cube::unserialize(std::istream &istr) {
     _scale = btVector3(x, y, z);
 
     // Reconstruire le RigidBody
-    _rigidBody->createBtRigidBody(_mass);
-    setScale(_scale);
+    // Physics
+    _collisionShape = btBoxShape{_scale};
+    this->_rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
+    _rigidBody->rigidBody().activate();
+
     _rigidBody->translate(Vector3(_location));
     _rigidBody->rotate(Quaternion(_rotation));
+    _rigidBody->syncPose();
+
+    _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
+    _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
+
+    _rigidBody->rigidBody().setActivationState(ACTIVE_TAG);
+    _rigidBody->rigidBody().activate(true);
+
+    // Appearance
+    Color3 color = Color3(1, 1, 1);
+    new ColoredDrawable{*(_rigidBody), _app->getBoxInstanceData(), color,
+    Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }

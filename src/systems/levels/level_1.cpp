@@ -94,11 +94,11 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
 
     /* Create boxes with random colors */
     Deg hue = 42.0_degf;
-    for(Int i = 0; i != 5; ++i) {
-        for(Int j = 0; j != 5; ++j) {
-            for(Int k = 0; k != 5; ++k) {
+    for(Int i = 0; i != 2; ++i) {
+        for(Int j = 0; j != 2; ++j) {
+            for(Int k = 0; k != 2; ++k) {
                 Color3 color = Color3::fromHsv({hue += 137.5_degf, 0.75f, 0.9f});
-                auto* o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 1.f, color);
+                auto* o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 3.f, color);
                 _objects[o->_name] = o;
                 o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
                 o->_rigidBody->syncPose();
@@ -251,6 +251,12 @@ void Level_1::keyPressEvent(KeyEvent& event) {
     if (event.key() == Key::U) {
         std::ofstream fileOut("objects.bin", std::ios::binary);
         serialize(fileOut);
+        for (auto it = _objects.begin(); it != _objects.end(); ) {
+            auto obj = it->second;
+            _linkingContext.Unregister(obj);
+            delete obj;
+            it = _objects.erase(it);
+        }
         fileOut.close();
     }
 
@@ -310,13 +316,18 @@ void Level_1::scrollEvent(ScrollEvent& event) {
 }
 
 void Level_1::serialize(std::ostream &ostr) const {
+    // On sérialise le nombre d'objet que l'on sérialise
+    uint16_t size_objects = _objects.size();
+    ostr.write(reinterpret_cast<const char*>(&size_objects), sizeof(uint16_t));
     for (auto pair : _objects) {
         pair.second->serialize(ostr);
     }
 }
 
 void Level_1::unserialize(std::istream &istr) {
-    while(!istr.eof()) {
+    uint16_t size_objects;
+    istr.read(reinterpret_cast<char*>(&size_objects), sizeof(uint16_t));
+    for (uint16_t i = 0; i < size_objects; i++) {
         // Désérialiser l'ID d'objet.
         uint32_t id;
         istr.read(reinterpret_cast<char*>(&id), sizeof(uint32_t));

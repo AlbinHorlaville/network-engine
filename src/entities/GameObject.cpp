@@ -31,6 +31,8 @@ void GameObject::updateDataFromBullet() {
     btTransform transform =  _rigidBody->_bRigidBody->getWorldTransform();
     _location = transform.getOrigin();
     _rotation = transform.getRotation();
+    _linearVelocity = _rigidBody->_bRigidBody->getLinearVelocity();
+    _angularVelocity = _rigidBody->_bRigidBody->getAngularVelocity();
 }
 
 void GameObject::serialize(std::ostream &ostr) const {
@@ -41,7 +43,7 @@ void GameObject::serialize(std::ostream &ostr) const {
     ostr.write(reinterpret_cast<const char*>(&_type), sizeof(ObjectType));
 
     // Serialize the name of this object
-    size_t length = _name.size();
+    size_t length = _name.length();
     ostr.write(reinterpret_cast<const char*>(&length), sizeof(size_t));
     ostr.write(_name.data(), length);
 
@@ -56,15 +58,26 @@ void GameObject::serialize(std::ostream &ostr) const {
     ostr.write(reinterpret_cast<const char*>(&_rotation.z()), sizeof(float));
     ostr.write(reinterpret_cast<const char*>(&_rotation.w()), sizeof(float));
 
+    // Serialize linear velocity
+    ostr.write(reinterpret_cast<const char*>(&_linearVelocity.x()), sizeof(float));
+    ostr.write(reinterpret_cast<const char*>(&_linearVelocity.y()), sizeof(float));
+    ostr.write(reinterpret_cast<const char*>(&_linearVelocity.z()), sizeof(float));
+
+    // Serialize angular velocity
+    ostr.write(reinterpret_cast<const char*>(&_angularVelocity.x()), sizeof(float));
+    ostr.write(reinterpret_cast<const char*>(&_angularVelocity.y()), sizeof(float));
+    ostr.write(reinterpret_cast<const char*>(&_angularVelocity.z()), sizeof(float));
+
     // Serialize Mass
     ostr.write(reinterpret_cast<const char*>(&_mass), sizeof(float));
 }
 
 void GameObject::unserialize(std::istream &istr) {
     // La désérialisation de l'id se fait avant l'appel de cette méthode
-
     size_t length;
     istr.read(reinterpret_cast<char*>(&length), sizeof(size_t));
+
+    _name.resize(length);
     istr.read(&_name[0], length);  // Lit les caractères du fichier
 
     // Unserialize Location
@@ -81,6 +94,18 @@ void GameObject::unserialize(std::istream &istr) {
     istr.read(reinterpret_cast<char*>(&z), sizeof(float));
     istr.read(reinterpret_cast<char*>(&w), sizeof(float));
     _rotation = btQuaternion(x, y, z, w);
+
+    // Unserialize linear velocity
+    istr.read(reinterpret_cast<char*>(&x), sizeof(float));
+    istr.read(reinterpret_cast<char*>(&y), sizeof(float));
+    istr.read(reinterpret_cast<char*>(&z), sizeof(float));
+    _linearVelocity = btVector3(x, y, z);
+
+    // Unserialize angular velocity
+    istr.read(reinterpret_cast<char*>(&x), sizeof(float));
+    istr.read(reinterpret_cast<char*>(&y), sizeof(float));
+    istr.read(reinterpret_cast<char*>(&z), sizeof(float));
+    _angularVelocity = btVector3(x, y, z);
 
     // Unserialize Mass
     istr.read(reinterpret_cast<char*>(&_mass), sizeof(float));

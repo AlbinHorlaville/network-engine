@@ -27,12 +27,19 @@ class GameObject : public Serializable {
         uint32_t _id = 0;
         ObjectType _type;
         std::string _name;
+        Object3D* _parent = nullptr;
         btVector3 _location;
+        btVector3 _linearVelocity;
+        btVector3 _angularVelocity;
         btQuaternion _rotation;
         float _mass;
         RigidBody* _rigidBody;
 
         GameObject(std::string name, float m) : _name(std::move(name)), _mass(m), _rigidBody(nullptr) {}
+        ~GameObject() {
+            delete _rigidBody;
+            _app = nullptr;
+        }
 
         virtual void setMass(float mass) = 0;
         virtual void updateDataFromBullet();
