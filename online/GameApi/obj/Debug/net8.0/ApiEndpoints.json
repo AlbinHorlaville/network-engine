@@ -1,0 +1,80 @@
+[
+  {
+    "ContainingType": "GameApi.Controllers.AchievementsController",
+    "Method": "GetAchievements",
+    "RelativePath": "achievements",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GameApi.Controllers.AuthController",
+    "Method": "Login",
+    "RelativePath": "Auth/login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "req",
+        "Type": "GameApi.Controllers.LoginRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GameApi.Controllers.MatchController",
+    "Method": "FindMatch",
+    "RelativePath": "matchmaking/find",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GameApi.Controllers.MatchController",
+    "Method": "RegisterServer",
+    "RelativePath": "matchmaking/register",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "req",
+        "Type": "GameApi.Controllers.MatchServer",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GameApi.Controllers.StatsController",
+    "Method": "GetStats",
+    "RelativePath": "stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GameApi.Controllers.StatsController",
+    "Method": "UpdateStats",
+    "RelativePath": "stats",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "newStats",
+        "Type": "GameApi.Controllers.PlayerStats",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]
