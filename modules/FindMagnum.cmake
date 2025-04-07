@@ -45,9 +45,9 @@
 #  MAGNUM_WEBAPPLICATION_CSS    - Path to the WebApplication.css file
 #
 # This command will try to find only the base library, not the optional
-# components. The base library depends on Corrade and OpenGL libraries (or
+#components. The base library depends on Corrade and OpenGL libraries (or
 # OpenGL ES libraries). Additional dependencies are specified by the
-# components. The optional components are:
+#components. The optional components are:
 #
 #  AnyAudioImporter             - Any audio importer
 #  AnyImageConverter            - Any image converter
@@ -407,7 +407,7 @@ else()
 endif()
 
 # Component distinction (listing them explicitly to avoid mistakes with finding
-# components from other repositories)
+#components from other repositories)
 set(_MAGNUM_LIBRARY_COMPONENTS
         Audio DebugTools GL MaterialTools MeshTools Primitives SceneGraph
         SceneTools Shaders ShaderTools Text TextureTools Trade
@@ -1066,7 +1066,7 @@ foreach(_component ${Magnum_FIND_COMPONENTS})
     endif()
 
     # Global aliases for Windowless*Application, *Application and *Context
-    # components. If already set, unset them to avoid ambiguity.
+    #components. If already set, unset them to avoid ambiguity.
     if(_component MATCHES "Windowless.+Application")
         if(NOT DEFINED _MAGNUM_WINDOWLESSAPPLICATION_ALIAS)
             set(_MAGNUM_WINDOWLESSAPPLICATION_ALIAS Magnum::${_component})
@@ -1110,7 +1110,7 @@ endif()
 # useful info about the failed components.
 if(NOT CMAKE_VERSION VERSION_LESS 3.16)
     set(_MAGNUM_REASON_FAILURE_MESSAGE )
-    # Go only through the originally specified find_package() components, not
+    # Go only through the originally specified find_package()components, not
     # the dependencies added by us afterwards
     foreach(_component ${_MAGNUM_ORIGINAL_FIND_COMPONENTS})
         if(Magnum_${_component}_FOUND)

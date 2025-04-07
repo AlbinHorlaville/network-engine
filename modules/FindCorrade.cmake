@@ -13,7 +13,7 @@
 #  CORRADE_LIB_SUFFIX_MODULE      - Path to CorradeLibSuffix.cmake module
 #
 # This command will try to find only the base library, not the optional
-# components, which are:
+#components, which are:
 #
 #  Containers                   - Containers library
 #  Interconnect                 - Interconnect library
@@ -434,7 +434,7 @@ foreach(_component ${Corrade_FIND_COMPONENTS})
         set(Corrade_${_component}_FOUND TRUE)
     else()
         # Default include path names to look for for library / header-only
-        # components, unless set above already
+        #components, unless set above already
         if(_component IN_LIST _CORRADE_LIBRARY_COMPONENTS)
             if(NOT _CORRADE_${_COMPONENT}_INCLUDE_PATH_SUFFIX)
                 set(_CORRADE_${_COMPONENT}_INCLUDE_PATH_SUFFIX Corrade/${_component})
@@ -444,7 +444,7 @@ foreach(_component ${Corrade_FIND_COMPONENTS})
             endif()
         endif()
 
-        # Library (and not header-only) components
+        # Library (and not header-only)components
         if(_component IN_LIST _CORRADE_LIBRARY_COMPONENTS AND NOT _component IN_LIST _CORRADE_HEADER_ONLY_COMPONENTS)
             add_library(Corrade::${_component} UNKNOWN IMPORTED)
 
@@ -659,7 +659,7 @@ endforeach()
 # useful info about the failed components.
 if(NOT CMAKE_VERSION VERSION_LESS 3.16)
     set(_CORRADE_REASON_FAILURE_MESSAGE )
-    # Go only through the originally specified find_package() components, not
+    # Go only through the originally specified find_package()components, not
     # the dependencies added by us afterwards
     foreach(_component ${_CORRADE_ORIGINAL_FIND_COMPONENTS})
         if(Corrade_${_component}_FOUND)

@@ -18,29 +18,47 @@ find_package(Bullet REQUIRED Dynamics)
 
 set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 
-file(GLOB_RECURSE SOURCES src/*.cpp)  # Find all .cpp files in src/
-add_executable(MagnumBootstrap ${SOURCES}
-        inc/systems/editor/SceneTree.h
-        src/systems/editor/SceneTree.cpp)
+file(GLOB_RECURSE COMMON_SOURCES src/components/*.cpp src/entities/*.cpp src/systems/*.cpp)
+message(STATUS "COMMON_SOURCES: ${COMMON_SOURCES}")
 
-target_include_directories(MagnumBootstrap PUBLIC inc)
-set_property(TARGET MagnumBootstrap PROPERTY CXX_STANDARD 20)
-target_link_libraries(MagnumBootstrap PRIVATE
-        Magnum::Application
-        Magnum::GL
-        Magnum::Magnum
-        Magnum::MeshTools
-        Magnum::Primitives
-        Magnum::SceneGraph
-        Magnum::Shaders
-        Magnum::Trade
-        MagnumIntegration::Bullet
-        Bullet::Dynamics
-        MagnumIntegration::ImGui
-        BulletDynamics
-        BulletCollision
-        LinearMath
-        Bullet3Common)
+# --- Executable principal Moteur ---
+add_executable(Moteur
+        ${COMMON_SOURCES}
+        src/main.cpp
+)
 
-target_link_libraries(MagnumBootstrap PRIVATE enet)
-target_include_directories(MagnumBootstrap PRIVATE externals/enet6/include)
+# --- Executable Serveur ---
+add_executable(Serveur
+        ${COMMON_SOURCES}
+        src/server/server.cpp
+)
+
+# --- Executable Client ---
+add_executable(Client
+        ${COMMON_SOURCES}
+        src/client/client.cpp
+)
+
+foreach(target IN ITEMS Moteur Serveur Client)
+    target_include_directories(${target} PUBLIC inc)
+    set_property(TARGET ${target} PROPERTY CXX_STANDARD 20)
+    target_link_libraries(${target} PRIVATE
+            Magnum::Application
+            Magnum::GL
+            Magnum::Magnum
+            Magnum::MeshTools
+            Magnum::Primitives
+            Magnum::SceneGraph
+            Magnum::Shaders
+            Magnum::Trade
+            MagnumIntegration::Bullet
+            Bullet::Dynamics
+            MagnumIntegration::ImGui
+            BulletDynamics
+            BulletCollision
+            LinearMath
+            Bullet3Common
+            enet
+    )
+    target_include_directories(${target} PRIVATE externals/enet6/include)
+endforeach()

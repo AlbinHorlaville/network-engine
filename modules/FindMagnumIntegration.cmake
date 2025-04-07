@@ -126,7 +126,7 @@ else()
 endif()
 
 # Component distinction (listing them explicitly to avoid mistakes with finding
-# components from other repositories)
+#components from other repositories)
 set(_MAGNUMINTEGRATION_LIBRARY_COMPONENTS Bullet Dart Eigen ImGui Glm)
 if(CORRADE_TARGET_WINDOWS)
     list(APPEND _MAGNUMINTEGRATION_LIBRARY_COMPONENTS Ovr)
@@ -396,7 +396,7 @@ endforeach()
 # useful info about the failed components.
 if(NOT CMAKE_VERSION VERSION_LESS 3.16)
     set(_MAGNUMINTEGRATION_REASON_FAILURE_MESSAGE )
-    # Go only through the originally specified find_package() components, not
+    # Go only through the originally specified find_package()components, not
     # the dependencies added by us afterwards
     foreach(_component ${_MAGNUMINTEGRATION_ORIGINAL_FIND_COMPONENTS})
         if(MagnumIntegration_${_component}_FOUND)
