@@ -1,37 +1,34 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using GameApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GameApi.Controllers
 {
-    [Authorize]
     [ApiController]
-    [Route("stats")]
+    [Authorize]
+    [Route("[controller]")]
     public class StatsController : ControllerBase
     {
-        public static Dictionary<string, PlayerStats> stats = new();
+        private readonly StatsService _statsService;
+
+        public StatsController(StatsService statsService)
+        {
+            _statsService = statsService;
+        }
 
         [HttpGet]
-        public IActionResult GetStats()
+        public async Task<IActionResult> Get()
         {
-            var user = User.Identity.Name!;
-            if (!stats.ContainsKey(user))
-                stats[user] = new PlayerStats();
-
-            return Ok(stats[user]);
+            var username = User.Identity?.Name!;
+            var stats = await _statsService.GetStatsAsync(username);
+            return stats == null ? NotFound() : Ok(stats);
         }
 
-        [HttpPost]
-        public IActionResult UpdateStats([FromBody] PlayerStats newStats)
+        [HttpPost("{username}")]
+        public async Task<IActionResult> Set(string username, [FromBody] PlayerStats stats)
         {
-            var user = User.Identity.Name!;
-            stats[user] = newStats;
-            return Ok(stats[user]);
+            await _statsService.SetStatsAsync(username, stats);
+            return Ok();
         }
-    }
-
-    public class PlayerStats
-    {
-        public int GamesWon { get; set; }
-        public int CubesCleared { get; set; }
     }
 }

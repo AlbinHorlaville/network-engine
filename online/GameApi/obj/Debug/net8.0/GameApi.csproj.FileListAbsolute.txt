@@ -39,3 +39,5 @@ C:\Users\orgor\OneDrive\Documents\UQAC\Rzo\network-engine\online\GameApi\obj\Deb
 C:\Users\orgor\OneDrive\Documents\UQAC\Rzo\network-engine\online\GameApi\obj\Debug\net8.0\GameApi.pdb
 C:\Users\orgor\OneDrive\Documents\UQAC\Rzo\network-engine\online\GameApi\obj\Debug\net8.0\GameApi.genruntimeconfig.cache
 C:\Users\orgor\OneDrive\Documents\UQAC\Rzo\network-engine\online\GameApi\obj\Debug\net8.0\ref\GameApi.dll
+C:\Users\orgor\OneDrive\Documents\UQAC\Rzo\network-engine\online\GameApi\bin\Debug\net8.0\Pipelines.Sockets.Unofficial.dll
+C:\Users\orgor\OneDrive\Documents\UQAC\Rzo\network-engine\online\GameApi\bin\Debug\net8.0\StackExchange.Redis.dll

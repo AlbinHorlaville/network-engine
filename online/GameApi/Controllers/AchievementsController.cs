@@ -1,25 +1,26 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using GameApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GameApi.Controllers
 {
-    [Authorize]
     [ApiController]
-    [Route("achievements")]
+    [Authorize]
+    [Route("[controller]")]
     public class AchievementsController : ControllerBase
     {
-        [HttpGet]
-        public IActionResult GetAchievements()
+        private readonly AchievementService _achievementService;
+
+        public AchievementsController(AchievementService achievementService)
         {
-            var user = User.Identity.Name!;
-            var stat = StatsController.stats.GetValueOrDefault(user, new PlayerStats());
-            var achievements = new List<string>();
+            _achievementService = achievementService;
+        }
 
-            if (stat.GamesWon >= 5)
-                achievements.Add("Gagné 5 parties !");
-            if (stat.CubesCleared >= 50)
-                achievements.Add("Expulsé 50 cubes !");
-
+        [HttpGet]
+        public async Task<IActionResult> Get()
+        {
+            var username = User.Identity?.Name!;
+            var achievements = await _achievementService.GetPlayerAchievementsAsync(username);
             return Ok(achievements);
         }
     }

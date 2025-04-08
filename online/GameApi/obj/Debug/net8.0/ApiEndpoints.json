@@ -1,8 +1,8 @@
 [
   {
     "ContainingType": "GameApi.Controllers.AchievementsController",
-    "Method": "GetAchievements",
-    "RelativePath": "achievements",
+    "Method": "Get",
+    "RelativePath": "Achievements",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -26,35 +26,67 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "GameApi.Controllers.MatchController",
-    "Method": "FindMatch",
-    "RelativePath": "matchmaking/find",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "GameApi.Controllers.MatchController",
-    "Method": "RegisterServer",
-    "RelativePath": "matchmaking/register",
+    "ContainingType": "GameApi.Controllers.AuthController",
+    "Method": "Register",
+    "RelativePath": "Auth/register",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
         "Name": "req",
-        "Type": "GameApi.Controllers.MatchServer",
+        "Type": "GameApi.Controllers.LoginRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
+    "ContainingType": "GameApi.Controllers.MatchmakingController",
+    "Method": "GetMatch",
+    "RelativePath": "Matchmaking/match",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "tier",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GameApi.Controllers.MatchmakingController",
+    "Method": "QueuePlayer",
+    "RelativePath": "Matchmaking/queue",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GameApi.Controllers.MatchmakingController",
+    "Method": "RegisterServer",
+    "RelativePath": "Matchmaking/register",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "ip",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "GameApi.Controllers.StatsController",
-    "Method": "GetStats",
-    "RelativePath": "stats",
+    "Method": "Get",
+    "RelativePath": "Stats",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -63,15 +95,20 @@
   },
   {
     "ContainingType": "GameApi.Controllers.StatsController",
-    "Method": "UpdateStats",
-    "RelativePath": "stats",
+    "Method": "Set",
+    "RelativePath": "Stats/{username}",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "newStats",
-        "Type": "GameApi.Controllers.PlayerStats",
+        "Name": "username",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "stats",
+        "Type": "GameApi.Services.PlayerStats",
         "IsRequired": true
       }
     ],
