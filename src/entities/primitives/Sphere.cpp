@@ -4,7 +4,7 @@
 
 #include "entities/primitives/Sphere.h"
 
-Sphere::Sphere(Level_1* app, std::string name, Object3D *parent, float scale, float mass, const Color3& color):
+Sphere::Sphere(Engine* app, std::string name, Object3D *parent, float scale, float mass, const Color3& color):
 GameObject(std::move(name), mass), _collisionShape(btSphereShape{scale}) {
     _app = app;
     _scale = scale;
@@ -21,7 +21,7 @@ GameObject(std::move(name), mass), _collisionShape(btSphereShape{scale}) {
     Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }
 
-Sphere::Sphere(Level_1* app, Object3D* parent, const float scale, const float mass, const Color3& color):
+Sphere::Sphere(Engine* app, Object3D* parent, const float scale, const float mass, const Color3& color):
     GameObject("Sphere", mass), _collisionShape(btSphereShape{scale}) {
     _app = app;
     _scale = scale;
@@ -38,7 +38,7 @@ Sphere::Sphere(Level_1* app, Object3D* parent, const float scale, const float ma
     Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }
 
-Sphere::Sphere(Level_1* app, Object3D* parent):
+Sphere::Sphere(Engine* app, Object3D* parent):
     GameObject("None", 1), _scale(1), _collisionShape(btSphereShape{_scale}) {
     _app = app;
     _type = CUBE;

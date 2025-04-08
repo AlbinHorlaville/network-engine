@@ -2,8 +2,8 @@
 // Created by User on 14/03/2025.
 //
 
-#ifndef LEVEL_1_H
-#define LEVEL_1_H
+#ifndef ENGINE_H
+#define ENGINE_H
 
 #include <btBulletDynamicsCommon.h>
 #include <Corrade/Containers/GrowableArray.h>
@@ -54,10 +54,10 @@ struct InstanceData {
     Color3 color;
 };
 
-class Level_1: public Platform::Application, public Serializable {
+class Engine: public Platform::Application, public Serializable {
     public:
-      explicit Level_1(const Arguments &arguments);
-      ~Level_1();
+      explicit Engine(const Arguments &arguments);
+      ~Engine();
 
     private:
     void serialize(std::ostream &ostr) const override;
@@ -123,4 +123,4 @@ public:
 
 
 
-#endif //LEVEL_1_H
+#endif //ENGINE_H

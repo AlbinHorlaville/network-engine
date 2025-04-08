@@ -12,9 +12,9 @@ class Cube: public GameObject {
 public:
     btVector3 _scale;
     Cube() = delete;
-    Cube(Level_1* app, std::string name, Object3D *parent, btVector3 scale, float mass, const Color3& color);
-    Cube(Level_1* app, Object3D *parent, btVector3 scale, float mass, const Color3& color);
-    Cube(Level_1* app, Object3D *parent);
+    Cube(Engine* app, std::string name, Object3D *parent, btVector3 scale, float mass, const Color3& color);
+    Cube(Engine* app, Object3D *parent, btVector3 scale, float mass, const Color3& color);
+    Cube(Engine* app, Object3D *parent);
     ~Cube() = default;
 
     void setScale(btVector3 newScale);

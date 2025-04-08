@@ -10,7 +10,7 @@
 class btVector3;
 class GameObject;
 class PhysicsObject;
-class Level_1;
+class Engine;
 
 using namespace Magnum;
 typedef SceneGraph::Scene<SceneGraph::MatrixTransformation3D> Scene3D;
@@ -20,7 +20,7 @@ public:
     bool _shootSphere;
 
     ProjectileManager(){_shootSphere = true;}
-    GameObject* Shoot(Level_1* app, Scene3D* scene, Vector3& position, btVector3& direction);
+    GameObject* Shoot(Engine* app, Scene3D* scene, Vector3& position, btVector3& direction);
 };
 
 

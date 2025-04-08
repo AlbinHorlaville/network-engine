@@ -12,7 +12,7 @@
 #include "Magnum/Math/Color.h"
 #include "Magnum/Platform/GlfwApplication.h"
 #include "Magnum/SceneGraph/Drawable.h"
-#include "systems/levels/Level_1.h"
+#include "systems/levels/Engine.h"
 #include "../systems/network/Serializable.h"
 
 struct InstanceData;
@@ -47,7 +47,7 @@ class GameObject : public Serializable {
         void unserialize(std::istream &istr) override = 0;
 
     protected:
-        Level_1* _app;
+        Engine* _app;
         void giveDefaultName();
 };
 

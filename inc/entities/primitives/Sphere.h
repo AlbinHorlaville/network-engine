@@ -12,9 +12,9 @@ class Sphere: public GameObject {
 public:
     float _scale;
     Sphere() = delete;
-    Sphere(Level_1* app, std::string name, Object3D *parent, float scale, float mass, const Color3& color);
-    Sphere(Level_1* app, Object3D *parent, float scale, float mass, const Color3& color);
-    Sphere(Level_1* app, Object3D* parent);
+    Sphere(Engine* app, std::string name, Object3D *parent, float scale, float mass, const Color3& color);
+    Sphere(Engine* app, Object3D *parent, float scale, float mass, const Color3& color);
+    Sphere(Engine* app, Object3D* parent);
     ~Sphere() = default;
 
     void setScale(float newScale);

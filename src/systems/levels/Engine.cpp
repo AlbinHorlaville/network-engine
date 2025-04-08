@@ -10,13 +10,13 @@
 
 #include "systems/physics/PhysicsWorld.h"
 #include <systems/physics/ProjectileManager.h>
-#include "systems/levels/Level_1.h"
+#include "systems/levels/Engine.h"
 #include "components/RigidBody.h"
 #include "entities/primitives/Cube.h"
 #include <Magnum/ImGuiIntegration/Context.hpp>
 
 
-Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, NoCreate) {
+Engine::Engine(const Arguments &arguments) : Platform::Application(arguments, NoCreate) {
     /* Try 8x MSAA, fall back to zero samples if not possible. Enable only 2x
        MSAA if we have enough DPI. */
     {
@@ -116,7 +116,7 @@ Level_1::Level_1(const Arguments &arguments) : Platform::Application(arguments, 
     _timeline.start();
 }
 
-Level_1::~Level_1() {
+Engine::~Engine() {
     delete _drawables;
     delete _pWorld;
     delete _pProjectileManager;
@@ -126,7 +126,7 @@ Level_1::~Level_1() {
 }
 
 
-void Level_1::drawEvent() {
+void Engine::drawEvent() {
     GL::defaultFramebuffer.clear(GL::FramebufferClear::Color|GL::FramebufferClear::Depth);
 
     // Start new ImGui frame
@@ -244,7 +244,7 @@ void Level_1::drawEvent() {
     redraw();
 }
 
-void Level_1::keyPressEvent(KeyEvent& event) {
+void Engine::keyPressEvent(KeyEvent& event) {
     _pressedKeys.insert(event.key());
 
     // Sérialiser tous les objets
@@ -274,12 +274,12 @@ void Level_1::keyPressEvent(KeyEvent& event) {
     event.setAccepted();
 }
 
-void Level_1::keyReleaseEvent(KeyEvent& event) {
+void Engine::keyReleaseEvent(KeyEvent& event) {
     _pressedKeys.erase(event.key()); // Remove key when released
     event.setAccepted();
 }
 
-void Level_1::pointerPressEvent(PointerEvent& event) {
+void Engine::pointerPressEvent(PointerEvent& event) {
     if(_imgui.handlePointerPressEvent(event)) return;
 
     /* Shoot an object on click */
@@ -303,19 +303,19 @@ void Level_1::pointerPressEvent(PointerEvent& event) {
     event.setAccepted();
 }
 
-void Level_1::pointerReleaseEvent(PointerEvent& event) {
+void Engine::pointerReleaseEvent(PointerEvent& event) {
     if(_imgui.handlePointerReleaseEvent(event)){}
 }
 
-void Level_1::pointerMoveEvent(PointerMoveEvent& event) {
+void Engine::pointerMoveEvent(PointerMoveEvent& event) {
     if(_imgui.handlePointerMoveEvent(event)){}
 }
 
-void Level_1::scrollEvent(ScrollEvent& event) {
+void Engine::scrollEvent(ScrollEvent& event) {
     if(_imgui.handleScrollEvent(event)){}
 }
 
-void Level_1::serialize(std::ostream &ostr) const {
+void Engine::serialize(std::ostream &ostr) const {
     // On sérialise le nombre d'objet que l'on sérialise
     uint16_t size_objects = _objects.size();
     ostr.write(reinterpret_cast<const char*>(&size_objects), sizeof(uint16_t));
@@ -324,7 +324,7 @@ void Level_1::serialize(std::ostream &ostr) const {
     }
 }
 
-void Level_1::unserialize(std::istream &istr) {
+void Engine::unserialize(std::istream &istr) {
     uint16_t size_objects;
     istr.read(reinterpret_cast<char*>(&size_objects), sizeof(uint16_t));
     for (uint16_t i = 0; i < size_objects; i++) {

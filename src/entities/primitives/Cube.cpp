@@ -7,7 +7,7 @@
 #include "entities/primitives/Cube.h"
 #include "Magnum/Primitives/Cube.h"
 
-Cube::Cube(Level_1* app, std::string name, Object3D *parent, const btVector3 scale, float mass, const Color3& color):
+Cube::Cube(Engine* app, std::string name, Object3D *parent, const btVector3 scale, float mass, const Color3& color):
     GameObject(std::move(name), mass), _collisionShape(btBoxShape{scale}) {
     _app = app;
     _scale = scale;
@@ -24,7 +24,7 @@ Cube::Cube(Level_1* app, std::string name, Object3D *parent, const btVector3 sca
     Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }
 
-Cube::Cube(Level_1* app, Object3D* parent, const btVector3 scale, const float mass, const Color3& color):
+Cube::Cube(Engine* app, Object3D* parent, const btVector3 scale, const float mass, const Color3& color):
     GameObject("Cube", mass), _collisionShape(btBoxShape{scale}) {
     _app = app;
     _scale = scale;
@@ -41,7 +41,7 @@ Cube::Cube(Level_1* app, Object3D* parent, const btVector3 scale, const float ma
     Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }
 
-Cube::Cube(Level_1* app, Object3D* parent):
+Cube::Cube(Engine* app, Object3D* parent):
     GameObject("None", 1), _scale(btVector3(1, 1, 1)), _collisionShape(btBoxShape{_scale}) {
     _app = app;
     _type = CUBE;

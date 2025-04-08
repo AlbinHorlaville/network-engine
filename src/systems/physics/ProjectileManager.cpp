@@ -7,9 +7,9 @@
 #include <entities/GameObject.h>
 #include "entities/primitives/Cube.h"
 #include "entities/primitives/Sphere.h"
-#include "systems/levels/Level_1.h"
+#include "systems/levels/Engine.h"
 
-GameObject* ProjectileManager::Shoot(Level_1* app, Scene3D* scene, Vector3& translate, btVector3& direction) {
+GameObject* ProjectileManager::Shoot(Engine* app, Scene3D* scene, Vector3& translate, btVector3& direction) {
     GameObject* projectile;
     Color3 color = 0x1010ff_rgbf;
     if (_shootSphere) {
