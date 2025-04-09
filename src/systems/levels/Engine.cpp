@@ -17,7 +17,42 @@
 
 
 Engine::Engine(const Arguments &arguments) : Platform::Application(arguments, NoCreate) {
-    /* Try 8x MSAA, fall back to zero samples if not possible. Enable only 2x
+    /*
+    initSimulation();
+
+    // Create the ground
+    auto* ground = new Cube(this, "Floor", &_scene, {5.0f, 0.5f, 5.0f}, 0.f, 0xffffff_rgbf);
+    _objects[ground->_name] = ground;
+
+    // Create boxes with random colors
+    Deg hue = 42.0_degf;
+    for(Int i = 0; i != 5; ++i) {
+        for(Int j = 0; j != 5; ++j) {
+            for(Int k = 0; k != 5; ++k) {
+                Color3 color = Color3::fromHsv({hue += 137.5_degf, 0.75f, 0.9f});
+                auto* o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 3.f, color);
+                _objects[o->_name] = o;
+                o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
+                o->_rigidBody->syncPose();
+                // Register o in the Linking Context
+                _linkingContext.Register(o);
+            }
+        }
+    }
+    */
+}
+
+Engine::~Engine() {
+    delete _drawables;
+    delete _pWorld;
+    delete _pProjectileManager;
+    delete _camera;
+    delete _cameraRig;
+    delete _cameraObject;
+}
+
+void Engine::initSimulation() {
+        /* Try 8x MSAA, fall back to zero samples if not possible. Enable only 2x
        MSAA if we have enough DPI. */
     {
         const Vector2 dpiScaling = this->dpiScaling({});
@@ -88,26 +123,6 @@ Engine::Engine(const Arguments &arguments) : Platform::Application(arguments, No
     // Init drawables
     _drawables = new SceneGraph::DrawableGroup3D();
 
-    /* Create the ground */
-    auto* ground = new Cube(this, "Floor", &_scene, {4.0f, 0.5f, 4.0f}, 0.f, 0xffffff_rgbf);
-    _objects[ground->_name] = ground;
-
-    /* Create boxes with random colors */
-    Deg hue = 42.0_degf;
-    for(Int i = 0; i != 2; ++i) {
-        for(Int j = 0; j != 2; ++j) {
-            for(Int k = 0; k != 2; ++k) {
-                Color3 color = Color3::fromHsv({hue += 137.5_degf, 0.75f, 0.9f});
-                auto* o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 3.f, color);
-                _objects[o->_name] = o;
-                o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
-                o->_rigidBody->syncPose();
-                // Register o in the Linking Context
-                _linkingContext.Register(o);
-            }
-        }
-    }
-
     _sceneTreeUI = new SceneTree(&_objects);
 
     /* Loop at 60 Hz max */
@@ -116,79 +131,9 @@ Engine::Engine(const Arguments &arguments) : Platform::Application(arguments, No
     _timeline.start();
 }
 
-Engine::~Engine() {
-    delete _drawables;
-    delete _pWorld;
-    delete _pProjectileManager;
-    delete _camera;
-    delete _cameraRig;
-    delete _cameraObject;
-}
-
-
-void Engine::drawEvent() {
-    GL::defaultFramebuffer.clear(GL::FramebufferClear::Color|GL::FramebufferClear::Depth);
-
+void Engine::drawImGUI() {
     // Start new ImGui frame
     _imgui.newFrame();
-
-    constexpr float moveSpeed = 10.f; // Adjust speed as needed
-    const float deltaTime = _timeline.previousFrameDuration();
-
-    if(_pressedKeys.count(Key::R)) {
-        _pProjectileManager->_shootSphere = false;
-    }
-
-    /* Movement */
-    if (_pressedKeys.count(Key::W))
-        _cameraRig->translateLocal(Vector3::zAxis(-moveSpeed * deltaTime));
-    if (_pressedKeys.count(Key::S))
-        _cameraRig->translateLocal(Vector3::zAxis(moveSpeed * deltaTime));
-    if (_pressedKeys.count(Key::A))
-        _cameraRig->translateLocal(Vector3::xAxis(-moveSpeed * deltaTime));
-    if (_pressedKeys.count(Key::D))
-        _cameraRig->translateLocal(Vector3::xAxis(moveSpeed * deltaTime));
-    if (_pressedKeys.count(Key::Q))
-        _cameraRig->translateLocal(Vector3::yAxis(moveSpeed * deltaTime));
-    if (_pressedKeys.count(Key::E))
-        _cameraRig->translateLocal(Vector3::yAxis(-moveSpeed * deltaTime));
-
-    _pWorld->cleanWorld();
-
-    // Remove object if their _rigidBody have been destroyed
-    for (auto it = _objects.begin(); it != _objects.end(); ) {
-        GameObject* object = it->second;
-        object->updateDataFromBullet();
-        if (object && object->_rigidBody && object->_rigidBody->_bRigidBody) {
-            if (object->_rigidBody->_bRigidBody->getWorldTransform().getOrigin().length() > 99.0f) {
-                if (_sceneTreeUI->_selectedObject == object) {
-                    _sceneTreeUI->_selectedObject = nullptr;
-                }
-                it = _objects.erase(it);
-                continue;
-            }
-        }
-        ++it;
-    }
-
-    _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
-
-    if(_drawCubes) {
-        /* Populate instance data with transformations and colors */
-        arrayResize(_boxInstanceData, 0);
-        arrayResize(_sphereInstanceData, 0);
-        _camera->draw(*_drawables);
-
-        _shader.setProjectionMatrix(_camera->projectionMatrix());
-
-        _boxInstanceBuffer.setData(_boxInstanceData, GL::BufferUsage::DynamicDraw);
-        _box.setInstanceCount(_boxInstanceData.size());
-        _shader.draw(_box);
-
-        _sphereInstanceBuffer.setData(_sphereInstanceData, GL::BufferUsage::DynamicDraw);
-        _sphere.setInstanceCount(_sphereInstanceData.size());
-        _shader.draw(_sphere);
-    }
 
     // Render ImGui
     _sceneTreeUI->DrawSceneTree();
@@ -226,22 +171,98 @@ void Engine::drawEvent() {
 
         ImGui::End();
     }
+    _imgui.drawFrame();
+}
+
+void Engine::tickMovments() {
+    constexpr float moveSpeed = 10.f; // Adjust speed as needed
+    const float deltaTime = _timeline.previousFrameDuration();
+
+    if(_pressedKeys.count(Key::R)) {
+        _pProjectileManager->_shootSphere = false;
+    }
+
+    /* Movement */
+    if (_pressedKeys.count(Key::W))
+        _cameraRig->translateLocal(Vector3::zAxis(-moveSpeed * deltaTime));
+    if (_pressedKeys.count(Key::S))
+        _cameraRig->translateLocal(Vector3::zAxis(moveSpeed * deltaTime));
+    if (_pressedKeys.count(Key::A))
+        _cameraRig->translateLocal(Vector3::xAxis(-moveSpeed * deltaTime));
+    if (_pressedKeys.count(Key::D))
+        _cameraRig->translateLocal(Vector3::xAxis(moveSpeed * deltaTime));
+    if (_pressedKeys.count(Key::Q))
+        _cameraRig->translateLocal(Vector3::yAxis(moveSpeed * deltaTime));
+    if (_pressedKeys.count(Key::E))
+        _cameraRig->translateLocal(Vector3::yAxis(-moveSpeed * deltaTime));
+}
+
+void Engine::cleanWorld() {
+    _pWorld->cleanWorld();
+
+    // Remove object if their _rigidBody have been destroyed
+    for (auto it = _objects.begin(); it != _objects.end(); ) {
+        GameObject* object = it->second;
+        object->updateDataFromBullet();
+        if (object && object->_rigidBody && object->_rigidBody->_bRigidBody) {
+            if (object->_rigidBody->_bRigidBody->getWorldTransform().getOrigin().length() > 99.0f) {
+                if (_sceneTreeUI->_selectedObject == object) {
+                    _sceneTreeUI->_selectedObject = nullptr;
+                }
+                it = _objects.erase(it);
+                continue;
+            }
+        }
+        ++it;
+    }
+}
+
+void Engine::drawGraphics() {
+    if(_drawCubes) {
+        /* Populate instance data with transformations and colors */
+        arrayResize(_boxInstanceData, 0);
+        arrayResize(_sphereInstanceData, 0);
+        _camera->draw(*_drawables);
+
+        _shader.setProjectionMatrix(_camera->projectionMatrix());
+
+        _boxInstanceBuffer.setData(_boxInstanceData, GL::BufferUsage::DynamicDraw);
+        _box.setInstanceCount(_boxInstanceData.size());
+        _shader.draw(_box);
+
+        _sphereInstanceBuffer.setData(_sphereInstanceData, GL::BufferUsage::DynamicDraw);
+        _sphere.setInstanceCount(_sphereInstanceData.size());
+        _shader.draw(_sphere);
+    }
 
     GL::Renderer::enable(GL::Renderer::Feature::Blending);
     GL::Renderer::enable(GL::Renderer::Feature::ScissorTest);
     GL::Renderer::disable(GL::Renderer::Feature::FaceCulling);
     GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
 
-    _imgui.drawFrame();
-
     GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
     GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
     GL::Renderer::disable(GL::Renderer::Feature::ScissorTest);
     GL::Renderer::disable(GL::Renderer::Feature::Blending);
+}
 
-    swapBuffers();
+void Engine::tickEvent() {
+    tickMovments();
+    cleanWorld();
+
+    // Simulation physique
+    _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
+
+    // Avance la timeline et redessine
     _timeline.nextFrame();
     redraw();
+}
+
+void Engine::drawEvent() {
+    GL::defaultFramebuffer.clear(GL::FramebufferClear::Color|GL::FramebufferClear::Depth);
+    drawGraphics();
+    drawImGUI();
+    swapBuffers();
 }
 
 void Engine::keyPressEvent(KeyEvent& event) {

@@ -59,10 +59,17 @@ class Engine: public Platform::Application, public Serializable {
       explicit Engine(const Arguments &arguments);
       ~Engine();
 
-    private:
+    void initSimulation();
+
+    virtual void networkUpdate() {} // A override par Server et Client
     void serialize(std::ostream &ostr) const override;
     void unserialize(std::istream &istr) override;
+    void drawImGUI();
+    void drawGraphics();
     void drawEvent() override;
+    void tickMovments();
+    void cleanWorld();
+    void tickEvent() override;
     void keyPressEvent(KeyEvent& event) override;
     void keyReleaseEvent(KeyEvent& event) override;
     void pointerPressEvent(PointerEvent& event) override;
@@ -100,7 +107,6 @@ class Engine: public Platform::Application, public Serializable {
     SceneTree* _sceneTreeUI;
     LinkingContext _linkingContext;
 
-public:
     std::map<std::string, GameObject *> const& getObjects() const {
         return _objects;
     }
