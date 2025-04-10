@@ -6,6 +6,7 @@
 #define CLIENT_H
 
 #include "enet6/enet.h"
+#include "entities/primitives/Player.h"
 #include "Engine.h"
 
 class Client : public Engine {
@@ -17,13 +18,16 @@ class Client : public Engine {
         uint8_t _id; // Send by the server, from 0 to 3.
         ENetHost* _client;
         ENetPeer* _peer;
+        Player* _players[4];
 
-
-    void tickEvent() override;
-    void networkUpdate() override;
-    void initENet6();
-    void pointerPressEvent(PointerEvent& event) override;
-    void keyPressEvent(KeyEvent& event) override;
+    public:
+        void tickEvent() override;
+        void networkUpdate() override;
+        void initENet6();
+        void pointerPressEvent(PointerEvent& event) override;
+        void keyPressEvent(KeyEvent& event) override;
+        void serialize(std::ostream &ostr) const override;
+        void unserialize(std::istream &istr) override;
 };
 
 

@@ -85,36 +85,102 @@ void Server::networkUpdate() {
     ENetEvent event;
     while (enet_host_service(_server, &event, 1) > 0) {
         switch (event.type) {
-            case ENET_EVENT_TYPE_CONNECT:
+            case ENET_EVENT_TYPE_CONNECT: {
                 char ipStr[46]; // INET6_ADDRSTRLEN
-            enet_address_get_host_ip(&event.peer->address, ipStr, sizeof(ipStr));
-            std::cout << "New client connected on " << ipStr << std::endl;
-            event.peer->data = static_cast<void*>(const_cast<char*>("Client connected"));
-            break;
+                enet_address_get_host_ip(&event.peer->address, ipStr, sizeof(ipStr));
+                std::cout << "New client connected on " << ipStr << std::endl;
+                event.peer->data = static_cast<void*>(const_cast<char*>("Client connected"));
 
-            case ENET_EVENT_TYPE_RECEIVE:
-                std::cout << "Package received on canal " << event.channelID
-                          << " : " << reinterpret_cast<char *>(event.packet->data) << std::endl;
-
-            // Réponse (echo)
-            enet_peer_send(event.peer, event.channelID, event.packet);
-            enet_host_flush(_server); // Envoi immédiat
-
-            break;
-
-            case ENET_EVENT_TYPE_DISCONNECT:
-                std::cout << "Client disconnected." << std::endl;
-            event.peer->data = nullptr;
-            break;
-
-            default:
+                // Créer un nouveau player si la limite de 4 clients n'a pas été atteinte.
+                for (int i = 0; i < 4; i++) {
+                    if (_players[i] == nullptr) {
+                        std::cout << "Creation d'un nouveau player..." << std::endl;
+                        _players[i] = new Player(i, event.peer, this, &_scene);
+                        // Send ID of the player
+                        ENetPacket* packet = enet_packet_create(&i, sizeof(i), ENET_PACKET_FLAG_RELIABLE);
+                        enet_peer_send(_players[i]->_peer, event.channelID, packet);
+                        std::cout << "Id " << i << " sent to the client." << std::endl;
+                        break;
+                    }
+                    else {
+                        std::cout << i << std::endl;
+                    }
+                }
                 break;
+            }
+            case ENET_EVENT_TYPE_RECEIVE: {
+                std::cout << "Package received on canal " << event.channelID << " : " << reinterpret_cast<char *>(event.packet->data) << std::endl;
+
+                // Réponse (echo)
+                enet_peer_send(event.peer, event.channelID, event.packet);
+                enet_host_flush(_server); // Envoi immédiat
+
+                break;
+            }
+
+            case ENET_EVENT_TYPE_DISCONNECT: {
+                std::cout << "Client disconnected." << std::endl;
+                event.peer->data = nullptr;
+                break;
+            }
+            default: break;
         }
+    }
+    // Envoyer la snapshot du monde à tous les clients
+}
+
+void Server::serialize(std::ostream &ostr) const {
+    // Sérialiser les players
+    for (int i = 0; i < 4; i++) {
+        _players[i]->serialize(ostr);
+    }
+    // On sérialise le nombre d'objet que l'on sérialise
+    uint16_t size_objects = _objects.size();
+    ostr.write(reinterpret_cast<const char*>(&size_objects), sizeof(uint16_t));
+    for (auto pair : _objects) {
+        pair.second->serialize(ostr);
     }
 }
 
-void Server::keyPressEvent(KeyEvent &) {} // Vide car le server n'a pas besoin d'input
+void Server::unserialize(std::istream &istr) {
+    // Players
+    for (int i = 0; i < 4; i++) {
+        _players[i]->unserialize(istr);
+    }
 
-void Server::pointerPressEvent(PointerEvent &) {} // Vide car le server n'a pas besoin d'input
+    // Objets
+    uint16_t size_objects;
+    istr.read(reinterpret_cast<char*>(&size_objects), sizeof(uint16_t));
+    for (uint16_t i = 0; i < size_objects; i++) {
+        // Désérialiser l'ID d'objet.
+        uint32_t id;
+        istr.read(reinterpret_cast<char*>(&id), sizeof(uint32_t));
 
-
+        GameObject* obj = _linkingContext.GetLocalObject(id);
+        if (obj) { // L'objet est trouvé
+            ObjectType type;
+            istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
+            obj->unserialize(istr);
+        }
+        else { // L'objet doit être créé
+            ObjectType type;
+            istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
+            switch(type) {
+                case CUBE: {
+                    auto cube = new Cube(this, &_scene);
+                    cube->unserialize(istr);
+                    _objects[cube->_name] = cube;
+                    _linkingContext.Register(cube);
+                    break;
+                }
+                case SPHERE: {
+                    auto* sphere = new Sphere(this, &_scene);
+                    sphere->unserialize(istr);
+                    _objects[sphere->_name] = sphere;
+                    _linkingContext.Register(sphere);
+                    break;
+                }
+            }
+        }
+    }
+}

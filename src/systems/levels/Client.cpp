@@ -6,6 +6,8 @@
 #include "entities/primitives/Cube.h"
 #include <enet6/enet.h>
 #include "systems/levels/Client.h"
+#include "systems/network/PackageType.h"
+#include <entities/primitives/Sphere.h>
 
 Client::Client(const Arguments &arguments): Engine(arguments) {
     initSimulation();
@@ -74,17 +76,37 @@ void Client::networkUpdate() {
     ENetEvent event;
     while (enet_host_service(_client, &event, 1) > 0) {
         switch (event.type) {
-            case ENET_EVENT_TYPE_RECEIVE:
+            case ENET_EVENT_TYPE_RECEIVE: {
                 std::cout << "Message received: " << event.packet->data << std::endl;
-            enet_packet_destroy(event.packet);
-            break;
 
-            case ENET_EVENT_TYPE_DISCONNECT:
-                std::cout << "Disconnected from the server." << std::endl;
-            break;
+                uint8_t* data = (uint8_t*)event.packet->data;
+                MessageType type = static_cast<MessageType>(data[0]);
 
-            default:
+                switch (type) {
+                    case MSG_ASSIGN_ID: {
+                        uint8_t id = data[1];
+                        std::cout << "ID recu du serveur : " << static_cast<int>(id) << std::endl;
+
+                        // Tu peux sauvegarder cet ID dans une variable membre, si besoin
+                        _id = id;
+                        break;
+                    }
+                    default: break;
+                }
+
+                // Get the player id
+                if (event.packet->dataLength == sizeof(uint8_t)) { // Seul le paquet qui envoie l'ID fait cette taille
+
+                }
+
+                enet_packet_destroy(event.packet);
                 break;
+            }
+            case ENET_EVENT_TYPE_DISCONNECT: {
+                std::cout << "Disconnected from the server." << std::endl;
+                break;
+            }
+            default: break;
         }
     }
 }
@@ -95,4 +117,60 @@ void Client::pointerPressEvent(PointerEvent &event) {
 
 void Client::keyPressEvent(KeyEvent &event) {
 
+}
+
+void Client::serialize(std::ostream &ostr) const {
+    // Sérialiser les players
+    for (int i = 0; i < 4; i++) {
+        _players[i]->serialize(ostr);
+    }
+    // On sérialise le nombre d'objet que l'on sérialise
+    uint16_t size_objects = _objects.size();
+    ostr.write(reinterpret_cast<const char*>(&size_objects), sizeof(uint16_t));
+    for (auto pair : _objects) {
+        pair.second->serialize(ostr);
+    }
+}
+
+void Client::unserialize(std::istream &istr) {
+    // Players
+    for (int i = 0; i < 4; i++) {
+        _players[i]->unserialize(istr);
+    }
+
+    // Objets
+    uint16_t size_objects;
+    istr.read(reinterpret_cast<char*>(&size_objects), sizeof(uint16_t));
+    for (uint16_t i = 0; i < size_objects; i++) {
+        // Désérialiser l'ID d'objet.
+        uint32_t id;
+        istr.read(reinterpret_cast<char*>(&id), sizeof(uint32_t));
+
+        GameObject* obj = _linkingContext.GetLocalObject(id);
+        if (obj) { // L'objet est trouvé
+            ObjectType type;
+            istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
+            obj->unserialize(istr);
+        }
+        else { // L'objet doit être créé
+            ObjectType type;
+            istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
+            switch(type) {
+                case CUBE: {
+                    auto cube = new Cube(this, &_scene);
+                    cube->unserialize(istr);
+                    _objects[cube->_name] = cube;
+                    _linkingContext.Register(cube);
+                    break;
+                }
+                case SPHERE: {
+                    auto* sphere = new Sphere(this, &_scene);
+                    sphere->unserialize(istr);
+                    _objects[sphere->_name] = sphere;
+                    _linkingContext.Register(sphere);
+                    break;
+                }
+            }
+        }
+    }
 }

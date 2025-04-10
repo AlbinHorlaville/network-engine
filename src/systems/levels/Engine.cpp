@@ -16,31 +16,7 @@
 #include <Magnum/ImGuiIntegration/Context.hpp>
 
 
-Engine::Engine(const Arguments &arguments) : Platform::Application(arguments, NoCreate) {
-    /*
-    initSimulation();
-
-    // Create the ground
-    auto* ground = new Cube(this, "Floor", &_scene, {5.0f, 0.5f, 5.0f}, 0.f, 0xffffff_rgbf);
-    _objects[ground->_name] = ground;
-
-    // Create boxes with random colors
-    Deg hue = 42.0_degf;
-    for(Int i = 0; i != 5; ++i) {
-        for(Int j = 0; j != 5; ++j) {
-            for(Int k = 0; k != 5; ++k) {
-                Color3 color = Color3::fromHsv({hue += 137.5_degf, 0.75f, 0.9f});
-                auto* o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 3.f, color);
-                _objects[o->_name] = o;
-                o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
-                o->_rigidBody->syncPose();
-                // Register o in the Linking Context
-                _linkingContext.Register(o);
-            }
-        }
-    }
-    */
-}
+Engine::Engine(const Arguments &arguments) : Platform::Application(arguments, NoCreate) {}
 
 Engine::~Engine() {
     delete _drawables;
@@ -84,9 +60,6 @@ void Engine::initSimulation() {
         ->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
         .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 99.0f))
         .setViewport(GL::defaultFramebuffer.viewport().size());
-
-    _imgui = Magnum::ImGuiIntegration::Context(Vector2{windowSize()} / dpiScaling(),
-                                           windowSize(), framebufferSize());
 
     /* Create an instanced shader */
     _shader = Shaders::PhongGL{Shaders::PhongGL::Configuration{}
@@ -171,7 +144,18 @@ void Engine::drawImGUI() {
 
         ImGui::End();
     }
+
+    GL::Renderer::enable(GL::Renderer::Feature::Blending);
+    GL::Renderer::enable(GL::Renderer::Feature::ScissorTest);
+    GL::Renderer::disable(GL::Renderer::Feature::FaceCulling);
+    GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
+
     _imgui.drawFrame();
+
+    GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
+    GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
+    GL::Renderer::disable(GL::Renderer::Feature::ScissorTest);
+    GL::Renderer::disable(GL::Renderer::Feature::Blending);
 }
 
 void Engine::tickMovments() {
@@ -234,16 +218,6 @@ void Engine::drawGraphics() {
         _sphere.setInstanceCount(_sphereInstanceData.size());
         _shader.draw(_sphere);
     }
-
-    GL::Renderer::enable(GL::Renderer::Feature::Blending);
-    GL::Renderer::enable(GL::Renderer::Feature::ScissorTest);
-    GL::Renderer::disable(GL::Renderer::Feature::FaceCulling);
-    GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
-
-    GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
-    GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
-    GL::Renderer::disable(GL::Renderer::Feature::ScissorTest);
-    GL::Renderer::disable(GL::Renderer::Feature::Blending);
 }
 
 void Engine::tickEvent() {
@@ -336,49 +310,7 @@ void Engine::scrollEvent(ScrollEvent& event) {
     if(_imgui.handleScrollEvent(event)){}
 }
 
-void Engine::serialize(std::ostream &ostr) const {
-    // On sérialise le nombre d'objet que l'on sérialise
-    uint16_t size_objects = _objects.size();
-    ostr.write(reinterpret_cast<const char*>(&size_objects), sizeof(uint16_t));
-    for (auto pair : _objects) {
-        pair.second->serialize(ostr);
-    }
-}
+void Engine::serialize(std::ostream &ostr) const {}
 
-void Engine::unserialize(std::istream &istr) {
-    uint16_t size_objects;
-    istr.read(reinterpret_cast<char*>(&size_objects), sizeof(uint16_t));
-    for (uint16_t i = 0; i < size_objects; i++) {
-        // Désérialiser l'ID d'objet.
-        uint32_t id;
-        istr.read(reinterpret_cast<char*>(&id), sizeof(uint32_t));
-
-        GameObject* obj = _linkingContext.GetLocalObject(id);
-        if (obj) { // L'objet est trouvé
-            ObjectType type;
-            istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
-            obj->unserialize(istr);
-        }
-        else { // L'objet doit être créé
-            ObjectType type;
-            istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
-            switch(type) {
-                case CUBE: {
-                    auto cube = new Cube(this, &_scene);
-                    cube->unserialize(istr);
-                    _objects[cube->_name] = cube;
-                    _linkingContext.Register(cube);
-                    break;
-                }
-                case SPHERE: {
-                    auto* sphere = new Sphere(this, &_scene);
-                    sphere->unserialize(istr);
-                    _objects[sphere->_name] = sphere;
-                    _linkingContext.Register(sphere);
-                    break;
-                }
-            }
-        }
-    }
-}
+void Engine::unserialize(std::istream &istr) {}
 

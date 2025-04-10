@@ -7,7 +7,8 @@
 
 #include "Engine.h"
 #include "enet6/enet.h"
-#include "systems/network/PlayerData.h"
+#include "entities/primitives/Player.h"
+#include <array>
 
 class Server : public Engine {
     public:
@@ -15,14 +16,14 @@ class Server : public Engine {
         ~Server();
     private:
         ENetHost* _server;
-        PlayerData* _players[4];
+        std::array<Player*, 4> _players = { nullptr };
 
+    public:
         void tickEvent() override;
         void networkUpdate() override;
         void initENet6();
-    public:
-        void pointerPressEvent(PointerEvent& event) override;
-        void keyPressEvent(KeyEvent& event) override;
+        void serialize(std::ostream &ostr) const override;
+        void unserialize(std::istream &istr) override;
 };
 
 
