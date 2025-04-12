@@ -4,7 +4,7 @@
 #include "entities/primitives/Player.h"
 
 
-Player::Player(uint32_t id, ENetPeer *peer, Engine* app, Object3D *parent) :
+Player::Player(const uint8_t id, ENetPeer *peer, Engine* app, Object3D *parent) :
     GameObject("Player " + std::to_string(id), 0), _collisionShape(btVector3(0.2f, 0.2f, 0.2f))
 {
     _peer = peer;
@@ -28,6 +28,10 @@ Player::Player(uint32_t id, ENetPeer *peer, Engine* app, Object3D *parent) :
     };
 }
 
+void Player::updateDataFromBullet() {
+    GameObject::updateDataFromBullet();
+}
+
 void Player::serialize(std::ostream &ostr) const {
     // id
     ostr.write(reinterpret_cast<const char*>(&_playerID), sizeof(uint8_t)); // Gérer quand on déserialise, faut trouver le bon player
@@ -41,11 +45,14 @@ void Player::serialize(std::ostream &ostr) const {
 }
 
 void Player::unserialize(std::istream &istr) {
-    int checkID;
+    uint8_t checkID;
     istr.read(reinterpret_cast<char*>(&checkID), sizeof(uint8_t));
 
-    if (_playerID != checkID) {
-        std::cerr << "Player::unserialize(): invalid id" << std::endl;
+    if (_playerID == 5) { // New Client
+        _playerID = checkID;
+    }
+    else if (_playerID != checkID) {
+        std::cerr << "Player::unserialize(): invalid id. Current : " << _playerID << ", Serialized : " << checkID << std::endl;
     }
 
     GameObject::unserialize(istr);

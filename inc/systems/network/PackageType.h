@@ -7,7 +7,7 @@
 
 #include <bits/fs_fwd.h>
 
-enum MessageType : uint8_t {
+enum PackageType : uint8_t {
     MSG_ASSIGN_ID = 0,
     MSG_WORLD_SYNC = 1,
 };

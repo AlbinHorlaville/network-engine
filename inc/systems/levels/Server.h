@@ -21,6 +21,10 @@ class Server : public Engine {
     public:
         void tickEvent() override;
         void networkUpdate() override;
+        void handleConnect(const ENetEvent &event);
+        void handleReceive(const ENetEvent &event);
+        void handleDisconnect(const ENetEvent &event);
+        void sendSnapshot();
         void initENet6();
         void serialize(std::ostream &ostr) const override;
         void unserialize(std::istream &istr) override;

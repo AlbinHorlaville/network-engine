@@ -77,38 +77,50 @@ void Client::networkUpdate() {
     while (enet_host_service(_client, &event, 1) > 0) {
         switch (event.type) {
             case ENET_EVENT_TYPE_RECEIVE: {
-                std::cout << "Message received: " << event.packet->data << std::endl;
-
-                uint8_t* data = (uint8_t*)event.packet->data;
-                MessageType type = static_cast<MessageType>(data[0]);
-
-                switch (type) {
-                    case MSG_ASSIGN_ID: {
-                        uint8_t id = data[1];
-                        std::cout << "ID recu du serveur : " << static_cast<int>(id) << std::endl;
-
-                        // Tu peux sauvegarder cet ID dans une variable membre, si besoin
-                        _id = id;
-                        break;
-                    }
-                    default: break;
-                }
-
-                // Get the player id
-                if (event.packet->dataLength == sizeof(uint8_t)) { // Seul le paquet qui envoie l'ID fait cette taille
-
-                }
-
-                enet_packet_destroy(event.packet);
+                handleReceive(event);
                 break;
             }
             case ENET_EVENT_TYPE_DISCONNECT: {
-                std::cout << "Disconnected from the server." << std::endl;
+                handleDisconnect(event);
                 break;
             }
             default: break;
         }
     }
+}
+
+void Client::handleReceive(const ENetEvent &event) {
+    size_t payloadSize = event.packet->dataLength;
+    const char* payload = reinterpret_cast<const char*>(event.packet->data);
+    std::istringstream iss(std::string(payload, payloadSize), std::ios::binary);
+    PackageType type;
+    iss.read(reinterpret_cast<char*>(&type), sizeof(type));
+
+    switch (type) {
+        case MSG_ASSIGN_ID: {
+            uint8_t id;
+            iss.read(reinterpret_cast<char*>(&id), sizeof(id));
+            std::cout << "ID recu du serveur : " << static_cast<int>(id) << std::endl;
+
+            // Tu peux sauvegarder cet ID dans une variable membre, si besoin
+            _id = id;
+            break;
+        }
+        case MSG_WORLD_SYNC: {
+            try {
+                unserialize(iss);
+            } catch (const std::exception& e) {
+                std::cerr << "Exception during unserialize: " << e.what() << std::endl;
+            }
+            std::cout << "World sync recu !" << std::endl;
+            break;
+        }
+        default: break;
+    }
+    enet_packet_destroy(event.packet);
+}
+void Client::handleDisconnect(const ENetEvent &event) {
+    std::cout << "Disconnected from the server." << std::endl;
 }
 
 void Client::pointerPressEvent(PointerEvent &event) {
@@ -122,7 +134,9 @@ void Client::keyPressEvent(KeyEvent &event) {
 void Client::serialize(std::ostream &ostr) const {
     // Sérialiser les players
     for (int i = 0; i < 4; i++) {
-        _players[i]->serialize(ostr);
+        if (_players[i]) {
+            _players[i]->serialize(ostr);
+        }
     }
     // On sérialise le nombre d'objet que l'on sérialise
     uint16_t size_objects = _objects.size();
@@ -134,10 +148,14 @@ void Client::serialize(std::ostream &ostr) const {
 
 void Client::unserialize(std::istream &istr) {
     // Players
+    /*
     for (int i = 0; i < 4; i++) {
+        if (_players[i] == nullptr) {
+            _players[i] = new Player(5, nullptr, this, &_scene);
+        }
         _players[i]->unserialize(istr);
     }
-
+    */
     // Objets
     uint16_t size_objects;
     istr.read(reinterpret_cast<char*>(&size_objects), sizeof(uint16_t));
@@ -160,14 +178,14 @@ void Client::unserialize(std::istream &istr) {
                     auto cube = new Cube(this, &_scene);
                     cube->unserialize(istr);
                     _objects[cube->_name] = cube;
-                    _linkingContext.Register(cube);
+                    _linkingContext.Register(id, cube);
                     break;
                 }
                 case SPHERE: {
                     auto* sphere = new Sphere(this, &_scene);
                     sphere->unserialize(istr);
                     _objects[sphere->_name] = sphere;
-                    _linkingContext.Register(sphere);
+                    _linkingContext.Register(id, sphere);
                     break;
                 }
             }

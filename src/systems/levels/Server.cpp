@@ -9,6 +9,8 @@
 #include <Magnum/ImGuiIntegration/Context.hpp>
 #include "systems/levels/Server.h"
 
+#include <systems/network/PackageType.h>
+
 Server::Server(const Arguments &arguments): Engine(arguments) {
     initSimulation();
 
@@ -18,9 +20,9 @@ Server::Server(const Arguments &arguments): Engine(arguments) {
 
     /* Create boxes with random colors */
     Deg hue = 42.0_degf;
-    for (Int i = 0; i != 5; ++i) {
-        for (Int j = 0; j != 5; ++j) {
-            for (Int k = 0; k != 5; ++k) {
+    for (Int i = 0; i != 1; ++i) {
+        for (Int j = 0; j != 1; ++j) {
+            for (Int k = 0; k != 1; ++k) {
                 Color3 color = Color3::fromHsv({hue += 137.5_degf, 0.75f, 0.9f});
                 auto *o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 3.f, color);
                 _objects[o->_name] = o;
@@ -86,54 +88,96 @@ void Server::networkUpdate() {
     while (enet_host_service(_server, &event, 1) > 0) {
         switch (event.type) {
             case ENET_EVENT_TYPE_CONNECT: {
-                char ipStr[46]; // INET6_ADDRSTRLEN
-                enet_address_get_host_ip(&event.peer->address, ipStr, sizeof(ipStr));
-                std::cout << "New client connected on " << ipStr << std::endl;
-                event.peer->data = static_cast<void*>(const_cast<char*>("Client connected"));
-
-                // Créer un nouveau player si la limite de 4 clients n'a pas été atteinte.
-                for (int i = 0; i < 4; i++) {
-                    if (_players[i] == nullptr) {
-                        std::cout << "Creation d'un nouveau player..." << std::endl;
-                        _players[i] = new Player(i, event.peer, this, &_scene);
-                        // Send ID of the player
-                        ENetPacket* packet = enet_packet_create(&i, sizeof(i), ENET_PACKET_FLAG_RELIABLE);
-                        enet_peer_send(_players[i]->_peer, event.channelID, packet);
-                        std::cout << "Id " << i << " sent to the client." << std::endl;
-                        break;
-                    }
-                    else {
-                        std::cout << i << std::endl;
-                    }
-                }
+                handleConnect(event);
                 break;
             }
             case ENET_EVENT_TYPE_RECEIVE: {
-                std::cout << "Package received on canal " << event.channelID << " : " << reinterpret_cast<char *>(event.packet->data) << std::endl;
-
-                // Réponse (echo)
-                enet_peer_send(event.peer, event.channelID, event.packet);
-                enet_host_flush(_server); // Envoi immédiat
-
+                handleReceive(event);
                 break;
             }
-
             case ENET_EVENT_TYPE_DISCONNECT: {
-                std::cout << "Client disconnected." << std::endl;
-                event.peer->data = nullptr;
+                handleDisconnect(event);
                 break;
             }
             default: break;
         }
     }
-    // Envoyer la snapshot du monde à tous les clients
+    sendSnapshot();
+}
+
+void Server::handleConnect(const ENetEvent &event) {
+    char ipStr[46]; // INET6_ADDRSTRLEN
+    enet_address_get_host_ip(&event.peer->address, ipStr, sizeof(ipStr));
+    std::cout << "New client connected on " << ipStr << std::endl;
+    event.peer->data = static_cast<void*>(const_cast<char*>("Client connected"));
+
+    // Créer un nouveau player si la limite de 4 clients n'a pas été atteinte.
+    for (int i = 0; i < 4; i++) {
+        if (_players[i] == nullptr) {
+            std::cout << "Creation d'un nouveau player..." << std::endl;
+            _players[i] = new Player(i, event.peer, this, &_scene);
+            _players[i]->_rigidBody->translate({-5.0f, 4.0f, -5.0f + static_cast<float>(i)});
+
+            // Send ID of the player
+            std::ostringstream oss(std::ios::binary);
+            PackageType flag = MSG_ASSIGN_ID;
+            oss.write(reinterpret_cast<const char*>(&flag), sizeof(flag));
+            oss.write(reinterpret_cast<const char*>(&i), sizeof(i));
+
+            std::string data = oss.str();
+            ENetPacket* packet = enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE);
+            enet_peer_send(_players[i]->_peer, event.channelID, packet);
+            std::cout << "Id " << i << " sent to the client." << std::endl;
+            break;
+        }
+    }
+}
+
+void Server::handleReceive(const ENetEvent &event) {
+    std::cout << "Package received on canal " << event.channelID << " : " << reinterpret_cast<char *>(event.packet->data) << std::endl;
+
+    // Réponse (echo)
+    // enet_peer_send(event.peer, event.channelID, event.packet);
+    // enet_host_flush(_server);
+}
+
+void Server::handleDisconnect(const ENetEvent &event) {
+    std::cout << "Client disconnected." << std::endl;
+    event.peer->data = nullptr;
+}
+
+void Server::sendSnapshot() {
+    std::cout << "Sending snapshot ..." << std::endl;
+    std::ostringstream oss(std::ios::binary);
+
+    // Mettre le flag
+    PackageType flag = MSG_WORLD_SYNC;
+    oss.write(reinterpret_cast<const char*>(&flag), sizeof(flag));
+
+    serialize(oss); // Ton appel à serialize(std::ostream&)
+
+    std::string data = oss.str();
+    ENetPacket* packet = enet_packet_create(
+        data.data(), data.size(),
+        ENET_PACKET_FLAG_RELIABLE
+    );
+
+    for (auto player : _players) {
+        if (player) {
+            enet_peer_send(player->_peer, 0, packet);
+        }
+    }
 }
 
 void Server::serialize(std::ostream &ostr) const {
     // Sérialiser les players
+    /*
     for (int i = 0; i < 4; i++) {
-        _players[i]->serialize(ostr);
+        if (_players[i]) {
+            _players[i]->serialize(ostr);
+        }
     }
+    */
     // On sérialise le nombre d'objet que l'on sérialise
     uint16_t size_objects = _objects.size();
     ostr.write(reinterpret_cast<const char*>(&size_objects), sizeof(uint16_t));
@@ -145,6 +189,9 @@ void Server::serialize(std::ostream &ostr) const {
 void Server::unserialize(std::istream &istr) {
     // Players
     for (int i = 0; i < 4; i++) {
+        if (_players[i] == nullptr) {
+            _players[i] = new Player(5, nullptr, this, &_scene);
+        }
         _players[i]->unserialize(istr);
     }
 

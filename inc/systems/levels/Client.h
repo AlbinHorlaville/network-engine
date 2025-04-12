@@ -23,6 +23,8 @@ class Client : public Engine {
     public:
         void tickEvent() override;
         void networkUpdate() override;
+        void handleReceive(const ENetEvent &event);
+        void handleDisconnect(const ENetEvent &event);
         void initENet6();
         void pointerPressEvent(PointerEvent& event) override;
         void keyPressEvent(KeyEvent& event) override;

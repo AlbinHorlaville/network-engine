@@ -115,7 +115,10 @@ void Sphere::unserialize(std::istream &istr) {
     // Reconstruire le RigidBody
     // Physics
     _collisionShape = btSphereShape{_scale};
-    this->_rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
+    if (_rigidBody) {
+        delete _rigidBody; // Remove the btRigidBody from the world
+    }
+    _rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
     _rigidBody->rigidBody().activate();
 
     //setMass(_mass);

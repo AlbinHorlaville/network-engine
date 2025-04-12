@@ -22,6 +22,12 @@ void LinkingContext::Register(GameObject* object) {
     _lastID++;
 }
 
+void LinkingContext::Register(uint32_t key, GameObject* object) {
+    localToNetwork[object] = key;
+    networkToLocal[key] = object;
+    object->_id = key;
+}
+
 void LinkingContext::Unregister(GameObject* object) {
     auto it = localToNetwork.find(object);
     if (it != localToNetwork.end()) {

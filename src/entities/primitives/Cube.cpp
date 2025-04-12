@@ -123,6 +123,9 @@ void Cube::unserialize(std::istream &istr) {
     // Reconstruire le RigidBody
     // Physics
     _collisionShape = btBoxShape{_scale};
+    if (_rigidBody) {
+        delete _rigidBody; // Remove the btRigidBody from the world
+    }
     this->_rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
     _rigidBody->rigidBody().activate();
 

@@ -13,9 +13,10 @@ public:
     uint8_t _playerID = -1;
     ENetPeer *_peer;
 
-    Player(uint32_t id, ENetPeer *peer, Engine* app, Object3D *parent);
+    Player(uint8_t id, ENetPeer *peer, Engine* app, Object3D *parent);
     ~Player() = default;
 
+    void updateDataFromBullet() override;
     void serialize(std::ostream &ostr) const override;
     void unserialize(std::istream &istr) override;
 private:

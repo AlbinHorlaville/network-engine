@@ -16,6 +16,7 @@ public:
     GameObject* GetLocalObject(uint32_t networkID);
 
     void Register(GameObject* object);
+    void Register(uint32_t key, GameObject* object);
     void Unregister(GameObject* object);
 
 private:
