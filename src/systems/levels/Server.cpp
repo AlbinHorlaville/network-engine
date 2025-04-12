@@ -16,7 +16,7 @@ Server::Server(const Arguments &arguments): Engine(arguments) {
 
     /* Create the ground */
     auto *ground = new Cube(this, "Floor", &_scene, {5.0f, 0.5f, 5.0f}, 0.f, 0xffffff_rgbf);
-    _objects[ground->_name] = ground;
+    addObject(ground);
 
     /* Create boxes with random colors */
     Deg hue = 42.0_degf;
@@ -25,11 +25,9 @@ Server::Server(const Arguments &arguments): Engine(arguments) {
             for (Int k = 0; k != 1; ++k) {
                 Color3 color = Color3::fromHsv({hue += 137.5_degf, 0.75f, 0.9f});
                 auto *o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 3.f, color);
-                _objects[o->_name] = o;
                 o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
                 o->_rigidBody->syncPose();
-                // Register o in the Linking Context
-                _linkingContext.Register(o);
+                addObject(o);
             }
         }
     }
@@ -147,7 +145,6 @@ void Server::handleDisconnect(const ENetEvent &event) {
 }
 
 void Server::sendSnapshot() {
-    std::cout << "Sending snapshot ..." << std::endl;
     std::ostringstream oss(std::ios::binary);
 
     // Mettre le flag
@@ -188,12 +185,14 @@ void Server::serialize(std::ostream &ostr) const {
 
 void Server::unserialize(std::istream &istr) {
     // Players
+    /*
     for (int i = 0; i < 4; i++) {
         if (_players[i] == nullptr) {
             _players[i] = new Player(5, nullptr, this, &_scene);
         }
         _players[i]->unserialize(istr);
     }
+    */
 
     // Objets
     uint16_t size_objects;
@@ -216,15 +215,13 @@ void Server::unserialize(std::istream &istr) {
                 case CUBE: {
                     auto cube = new Cube(this, &_scene);
                     cube->unserialize(istr);
-                    _objects[cube->_name] = cube;
-                    _linkingContext.Register(cube);
+                    addObject(cube);
                     break;
                 }
                 case SPHERE: {
                     auto* sphere = new Sphere(this, &_scene);
                     sphere->unserialize(istr);
-                    _objects[sphere->_name] = sphere;
-                    _linkingContext.Register(sphere);
+                    addObject(sphere);
                     break;
                 }
             }

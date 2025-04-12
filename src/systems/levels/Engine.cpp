@@ -193,6 +193,7 @@ void Engine::cleanWorld() {
                 if (_sceneTreeUI->_selectedObject == object) {
                     _sceneTreeUI->_selectedObject = nullptr;
                 }
+                _linkingContext.Unregister(object);
                 it = _objects.erase(it);
                 continue;
             }
@@ -293,7 +294,8 @@ void Engine::pointerPressEvent(PointerEvent& event) {
 
     GameObject* projectile = _pProjectileManager->Shoot(this, &_scene, translate, direction);
     projectile->setMass(1000);
-    _objects[projectile->_name] = projectile;
+    //projectile->_location = btVector3(translate);
+    addObject(projectile);
 
     event.setAccepted();
 }
@@ -314,3 +316,12 @@ void Engine::serialize(std::ostream &ostr) const {}
 
 void Engine::unserialize(std::istream &istr) {}
 
+void Engine::addObject(GameObject* object) {
+    _objects[object->_name] = object;
+    _linkingContext.Register(object);
+}
+
+void Engine::addObject(GameObject* object, uint32_t id) {
+    _objects[object->_name] = object;
+    _linkingContext.Register(id, object);
+}

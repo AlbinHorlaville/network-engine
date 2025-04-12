@@ -123,15 +123,13 @@ void Cube::unserialize(std::istream &istr) {
     // Reconstruire le RigidBody
     // Physics
     _collisionShape = btBoxShape{_scale};
-    if (_rigidBody) {
-        delete _rigidBody; // Remove the btRigidBody from the world
+    if (_rigidBody == nullptr) {
+        this->_rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
+        _rigidBody->rigidBody().activate();
+        _rigidBody->translate(Vector3(_location));
+        _rigidBody->rotate(Quaternion(_rotation));
+        _rigidBody->syncPose();
     }
-    this->_rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
-    _rigidBody->rigidBody().activate();
-
-    _rigidBody->translate(Vector3(_location));
-    _rigidBody->rotate(Quaternion(_rotation));
-    _rigidBody->syncPose();
 
     _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
     _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);

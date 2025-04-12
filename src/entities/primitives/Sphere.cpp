@@ -46,9 +46,6 @@ Sphere::Sphere(Engine* app, Object3D* parent):
 
     // Change name if it already exists
     giveDefaultName();
-
-    // Physics
-    this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
 }
 
 void Sphere::setScale(const float newScale) {
@@ -115,16 +112,14 @@ void Sphere::unserialize(std::istream &istr) {
     // Reconstruire le RigidBody
     // Physics
     _collisionShape = btSphereShape{_scale};
-    if (_rigidBody) {
-        delete _rigidBody; // Remove the btRigidBody from the world
-    }
-    _rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
-    _rigidBody->rigidBody().activate();
 
-    //setMass(_mass);
-    _rigidBody->translate(Vector3(_location));
-    _rigidBody->rotate(Quaternion(_rotation));
-    _rigidBody->syncPose();
+    if (_rigidBody == nullptr) {
+        this->_rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
+        _rigidBody->rigidBody().activate();
+        _rigidBody->translate(Vector3(_location));
+        _rigidBody->rotate(Quaternion(_rotation));
+        _rigidBody->syncPose();
+    }
 
     _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
     _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);

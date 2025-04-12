@@ -15,6 +15,7 @@ GameObject* LinkingContext::GetLocalObject(uint32_t networkID) {
     return (it != networkToLocal.end()) ? it->second : nullptr;
 }
 
+// Server method
 void LinkingContext::Register(GameObject* object) {
     localToNetwork[object] = _lastID;
     networkToLocal[_lastID] = object;
@@ -22,6 +23,7 @@ void LinkingContext::Register(GameObject* object) {
     _lastID++;
 }
 
+// Client method
 void LinkingContext::Register(uint32_t key, GameObject* object) {
     localToNetwork[object] = key;
     networkToLocal[key] = object;

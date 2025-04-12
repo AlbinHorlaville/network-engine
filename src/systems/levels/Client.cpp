@@ -107,12 +107,7 @@ void Client::handleReceive(const ENetEvent &event) {
             break;
         }
         case MSG_WORLD_SYNC: {
-            try {
-                unserialize(iss);
-            } catch (const std::exception& e) {
-                std::cerr << "Exception during unserialize: " << e.what() << std::endl;
-            }
-            std::cout << "World sync recu !" << std::endl;
+            unserialize(iss);
             break;
         }
         default: break;
@@ -124,7 +119,7 @@ void Client::handleDisconnect(const ENetEvent &event) {
 }
 
 void Client::pointerPressEvent(PointerEvent &event) {
-
+    if(_imgui.handlePointerPressEvent(event)) return;
 }
 
 void Client::keyPressEvent(KeyEvent &event) {
@@ -177,15 +172,13 @@ void Client::unserialize(std::istream &istr) {
                 case CUBE: {
                     auto cube = new Cube(this, &_scene);
                     cube->unserialize(istr);
-                    _objects[cube->_name] = cube;
-                    _linkingContext.Register(id, cube);
+                    addObject(cube, id);
                     break;
                 }
                 case SPHERE: {
                     auto* sphere = new Sphere(this, &_scene);
                     sphere->unserialize(istr);
-                    _objects[sphere->_name] = sphere;
-                    _linkingContext.Register(id, sphere);
+                    addObject(sphere, id);
                     break;
                 }
             }
