@@ -97,6 +97,14 @@ void Cube::setMass(const float mass) {
     _rigidBody->rigidBody().setActivationState(ACTIVE_TAG);
 }
 
+void Cube::setColor(const Color3 &color) {
+    if (_drawable) {
+        delete _drawable;
+    }
+    _drawable = new ColoredDrawable{*(_rigidBody), _app->getBoxInstanceData(), color,
+        Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
+}
+
 void Cube::updateDataFromBullet() {
     GameObject::updateDataFromBullet();
 }
@@ -121,24 +129,25 @@ void Cube::unserialize(std::istream &istr) {
     _scale = btVector3(x, y, z);
 
     // Reconstruire le RigidBody
-    // Physics
     _collisionShape = btBoxShape{_scale};
+
     if (_rigidBody == nullptr) {
-        this->_rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
-        _rigidBody->rigidBody().activate();
+        _rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
         _rigidBody->translate(Vector3(_location));
         _rigidBody->rotate(Quaternion(_rotation));
         _rigidBody->syncPose();
     }
+    _rigidBody->rigidBody().getMotionState()->setWorldTransform(btTransform(btQuaternion(_rotation), _location));
+
+    _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
+    _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
+    _rigidBody->rigidBody().setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
+    _rigidBody->rigidBody().setActivationState(DISABLE_DEACTIVATION);
 
     _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
     _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
 
-    _rigidBody->rigidBody().setActivationState(ACTIVE_TAG);
-    _rigidBody->rigidBody().activate(true);
-
     // Appearance
     Color3 color = Color3(1, 1, 1);
-    new ColoredDrawable{*(_rigidBody), _app->getBoxInstanceData(), color,
-    Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
+    setColor(color);
 }

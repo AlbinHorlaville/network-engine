@@ -19,6 +19,7 @@ public:
 
     void setScale(btVector3 newScale);
     void setMass(float mass) override;
+    void setColor(const Color3 &color) override;
     void updateDataFromBullet() override;
     void serialize(std::ostream &ostr) const override;
     void unserialize(std::istream &istr) override;

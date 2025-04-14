@@ -17,6 +17,7 @@ public:
     ~Player() = default;
 
     void updateDataFromBullet() override;
+    void setColor(const Color3 &color) override;
     void serialize(std::ostream &ostr) const override;
     void unserialize(std::istream &istr) override;
 private:

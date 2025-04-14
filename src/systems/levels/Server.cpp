@@ -20,9 +20,9 @@ Server::Server(const Arguments &arguments): Engine(arguments) {
 
     /* Create boxes with random colors */
     Deg hue = 42.0_degf;
-    for (Int i = 0; i != 1; ++i) {
-        for (Int j = 0; j != 1; ++j) {
-            for (Int k = 0; k != 1; ++k) {
+    for (Int i = 0; i != 3; ++i) {
+        for (Int j = 0; j != 3; ++j) {
+            for (Int k = 0; k != 3; ++k) {
                 Color3 color = Color3::fromHsv({hue += 137.5_degf, 0.75f, 0.9f});
                 auto *o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 3.f, color);
                 o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
@@ -69,9 +69,9 @@ void Server::initENet6() {
 }
 
 void Server::tickEvent() {
-    networkUpdate();
     tickMovments();
     cleanWorld();
+    networkUpdate();
 
     // Simulation physique
     _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
@@ -101,6 +101,14 @@ void Server::networkUpdate() {
         }
     }
     sendSnapshot();
+    /*
+    snapshotTimer += deltaTime.get();
+
+    if(snapshotTimer >= 0.1f) {
+        sendSnapshot();
+        snapshotTimer = 0.0f;
+    }
+    */
 }
 
 void Server::handleConnect(const ENetEvent &event) {
@@ -133,10 +141,6 @@ void Server::handleConnect(const ENetEvent &event) {
 
 void Server::handleReceive(const ENetEvent &event) {
     std::cout << "Package received on canal " << event.channelID << " : " << reinterpret_cast<char *>(event.packet->data) << std::endl;
-
-    // Réponse (echo)
-    // enet_peer_send(event.peer, event.channelID, event.packet);
-    // enet_host_flush(_server);
 }
 
 void Server::handleDisconnect(const ENetEvent &event) {

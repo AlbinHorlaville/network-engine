@@ -87,6 +87,7 @@ void Client::networkUpdate() {
             default: break;
         }
     }
+    enet_packet_destroy(event.packet);
 }
 
 void Client::handleReceive(const ENetEvent &event) {
@@ -112,8 +113,8 @@ void Client::handleReceive(const ENetEvent &event) {
         }
         default: break;
     }
-    enet_packet_destroy(event.packet);
 }
+
 void Client::handleDisconnect(const ENetEvent &event) {
     std::cout << "Disconnected from the server." << std::endl;
 }

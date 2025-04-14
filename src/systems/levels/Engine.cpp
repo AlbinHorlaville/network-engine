@@ -102,6 +102,9 @@ void Engine::initSimulation() {
     setSwapInterval(1);
     setMinimalLoopPeriod(16.0_msec);
     _timeline.start();
+
+    // Init FPS handler
+    fps_handler.init();
 }
 
 void Engine::drawImGUI() {
@@ -238,6 +241,7 @@ void Engine::drawEvent() {
     drawGraphics();
     drawImGUI();
     swapBuffers();
+    fps_handler.update();
 }
 
 void Engine::keyPressEvent(KeyEvent& event) {

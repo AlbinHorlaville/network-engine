@@ -4,6 +4,8 @@
 
 #include "entities/primitives/Sphere.h"
 
+#include <set>
+
 Sphere::Sphere(Engine* app, std::string name, Object3D *parent, float scale, float mass, const Color3& color):
 GameObject(std::move(name), mass), _collisionShape(btSphereShape{scale}) {
     _app = app;
@@ -92,6 +94,14 @@ void Sphere::setMass(const float mass) {
     _rigidBody->rigidBody().setActivationState(ACTIVE_TAG);
 }
 
+void Sphere::setColor(const Color3 &color) {
+    if (_drawable) {
+        delete _drawable;
+    }
+    _drawable = new ColoredDrawable{*(_rigidBody), _app->getSphereInstanceData(), color,
+        Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
+}
+
 void Sphere::updateDataFromBullet() {
     GameObject::updateDataFromBullet();
 }
@@ -114,21 +124,22 @@ void Sphere::unserialize(std::istream &istr) {
     _collisionShape = btSphereShape{_scale};
 
     if (_rigidBody == nullptr) {
-        this->_rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
-        _rigidBody->rigidBody().activate();
+        _rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
         _rigidBody->translate(Vector3(_location));
         _rigidBody->rotate(Quaternion(_rotation));
         _rigidBody->syncPose();
     }
+    _rigidBody->rigidBody().getMotionState()->setWorldTransform(btTransform(btQuaternion(_rotation), _location));
+
+    _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
+    _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
+    _rigidBody->rigidBody().setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
+    _rigidBody->rigidBody().setActivationState(DISABLE_DEACTIVATION);
 
     _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
     _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
 
-    _rigidBody->rigidBody().setActivationState(ACTIVE_TAG);
-    _rigidBody->rigidBody().activate(true);
-
     // Appearance
     Color3 color = Color3(1, 1, 1);
-    new ColoredDrawable{*(_rigidBody), _app->getSphereInstanceData(), color,
-    Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
+    setColor(color);
 }
