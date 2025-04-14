@@ -211,6 +211,7 @@ void Server::unserialize(std::istream &istr) {
             ObjectType type;
             istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
             obj->unserialize(istr);
+            obj->updateBulletFromData();
         }
         else { // L'objet doit être créé
             ObjectType type;
@@ -219,12 +220,14 @@ void Server::unserialize(std::istream &istr) {
                 case CUBE: {
                     auto cube = new Cube(this, &_scene);
                     cube->unserialize(istr);
+                    cube->updateBulletFromData();
                     addObject(cube);
                     break;
                 }
                 case SPHERE: {
                     auto* sphere = new Sphere(this, &_scene);
                     sphere->unserialize(istr);
+                    sphere->updateBulletFromData();
                     addObject(sphere);
                     break;
                 }

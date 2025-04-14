@@ -70,6 +70,11 @@ void GameObject::serialize(std::ostream &ostr) const {
 
     // Serialize Mass
     ostr.write(reinterpret_cast<const char*>(&_mass), sizeof(float));
+
+    // Serialize Color
+    ostr.write(reinterpret_cast<const char*>(&_color.r()), sizeof(float));
+    ostr.write(reinterpret_cast<const char*>(&_color.g()), sizeof(float));
+    ostr.write(reinterpret_cast<const char*>(&_color.b()), sizeof(float));
 }
 
 void GameObject::unserialize(std::istream &istr) {
@@ -109,4 +114,10 @@ void GameObject::unserialize(std::istream &istr) {
 
     // Unserialize Mass
     istr.read(reinterpret_cast<char*>(&_mass), sizeof(float));
+
+    // Unserialize Color
+    istr.read(reinterpret_cast<char*>(&x), sizeof(float));
+    istr.read(reinterpret_cast<char*>(&y), sizeof(float));
+    istr.read(reinterpret_cast<char*>(&z), sizeof(float));
+    _color = Color3(x, y, z);
 }

@@ -16,7 +16,7 @@ public:
     Player(uint8_t id, ENetPeer *peer, Engine* app, Object3D *parent);
     ~Player() = default;
 
-    void updateDataFromBullet() override;
+    void updateBulletFromData() override;
     void setColor(const Color3 &color) override;
     void serialize(std::ostream &ostr) const override;
     void unserialize(std::istream &istr) override;

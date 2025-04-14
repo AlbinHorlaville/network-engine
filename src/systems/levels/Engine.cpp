@@ -316,10 +316,6 @@ void Engine::scrollEvent(ScrollEvent& event) {
     if(_imgui.handleScrollEvent(event)){}
 }
 
-void Engine::serialize(std::ostream &ostr) const {}
-
-void Engine::unserialize(std::istream &istr) {}
-
 void Engine::addObject(GameObject* object) {
     _objects[object->_name] = object;
     _linkingContext.Register(object);

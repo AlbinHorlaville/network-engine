@@ -100,8 +100,8 @@ class Engine: public Platform::Application, public Serializable {
     void initSimulation();
 
     virtual void networkUpdate() {} // A override par Server et Client
-    void serialize(std::ostream &ostr) const override;
-    void unserialize(std::istream &istr) override;
+    void serialize(std::ostream &ostr) const override = 0;
+    void unserialize(std::istream &istr) override = 0;
     void addObject(GameObject* object);
     void addObject(GameObject* object, uint32_t id);
     void drawImGUI();

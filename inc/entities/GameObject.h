@@ -50,6 +50,7 @@ public:
     btQuaternion _rotation;
     float _mass;
     RigidBody* _rigidBody = nullptr;
+    Color3 _color;
     ColoredDrawable* _drawable = nullptr;
 
     GameObject(std::string name, float m) : _name(std::move(name)), _mass(m), _rigidBody(nullptr) {}
@@ -60,6 +61,7 @@ public:
 
     virtual void setMass(float mass) = 0;
     virtual void updateDataFromBullet();
+    virtual void updateBulletFromData() = 0;
     virtual void setColor(const Color3& color) = 0;
     void serialize(std::ostream &ostr) const override = 0;
     void unserialize(std::istream &istr) override = 0;

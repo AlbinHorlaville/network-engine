@@ -19,8 +19,7 @@ GameObject(std::move(name), mass), _collisionShape(btSphereShape{scale}) {
     this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
 
     // Appearance
-    new ColoredDrawable{*(_rigidBody), _app->getSphereInstanceData(), color,
-    Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
+    Sphere::setColor(color);
 }
 
 Sphere::Sphere(Engine* app, Object3D* parent, const float scale, const float mass, const Color3& color):
@@ -36,8 +35,7 @@ Sphere::Sphere(Engine* app, Object3D* parent, const float scale, const float mas
     this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
 
     // Appearance
-    new ColoredDrawable{*(_rigidBody), _app->getSphereInstanceData(), color,
-    Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
+    Sphere::setColor(color);
 }
 
 Sphere::Sphere(Engine* app, Object3D* parent):
@@ -98,29 +96,13 @@ void Sphere::setColor(const Color3 &color) {
     if (_drawable) {
         delete _drawable;
     }
+    _color = color;
     _drawable = new ColoredDrawable{*(_rigidBody), _app->getSphereInstanceData(), color,
         Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }
 
-void Sphere::updateDataFromBullet() {
-    GameObject::updateDataFromBullet();
-}
-
-void Sphere::serialize(std::ostream &ostr) const {
-    GameObject::serialize(ostr);
-
-    // Serialize Scale
-    ostr.write(reinterpret_cast<const char*>(&_scale), sizeof(float));
-}
-
-void Sphere::unserialize(std::istream &istr) {
-    GameObject::unserialize(istr);
-
-    // Unserialize Scale
-    istr.read(reinterpret_cast<char*>(&_scale), sizeof(float));
-
+void Sphere::updateBulletFromData() {
     // Reconstruire le RigidBody
-    // Physics
     _collisionShape = btSphereShape{_scale};
 
     if (_rigidBody == nullptr) {
@@ -140,6 +122,19 @@ void Sphere::unserialize(std::istream &istr) {
     _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
 
     // Appearance
-    Color3 color = Color3(1, 1, 1);
-    setColor(color);
+    setColor(_color);
+}
+
+void Sphere::serialize(std::ostream &ostr) const {
+    GameObject::serialize(ostr);
+
+    // Serialize Scale
+    ostr.write(reinterpret_cast<const char*>(&_scale), sizeof(float));
+}
+
+void Sphere::unserialize(std::istream &istr) {
+    GameObject::unserialize(istr);
+
+    // Unserialize Scale
+    istr.read(reinterpret_cast<char*>(&_scale), sizeof(float));
 }

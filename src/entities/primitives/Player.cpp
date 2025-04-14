@@ -32,13 +32,35 @@ void Player::setColor(const Color3 &color) {
     if (_drawable) {
         delete _drawable;
     }
+    _color = color;
     _drawable = new ColoredDrawable{*(_rigidBody), _app->getBoxInstanceData(), color,
         Matrix4::scaling(Vector3{_scale}), _app->getDrawables()};
 }
 
-void Player::updateDataFromBullet() {
-    GameObject::updateDataFromBullet();
+void Player::updateBulletFromData() {
+    // Reconstruire le RigidBody
+    _collisionShape = btBoxShape{_scale};
+
+    if (_rigidBody == nullptr) {
+        _rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
+        _rigidBody->translate(Vector3(_location));
+        _rigidBody->rotate(Quaternion(_rotation));
+        _rigidBody->syncPose();
+    }
+    _rigidBody->rigidBody().getMotionState()->setWorldTransform(btTransform(btQuaternion(_rotation), _location));
+
+    _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
+    _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
+    _rigidBody->rigidBody().setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
+    _rigidBody->rigidBody().setActivationState(DISABLE_DEACTIVATION);
+
+    _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
+    _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
+
+    // Appearance
+    setColor(_color);
 }
+
 
 void Player::serialize(std::ostream &ostr) const {
     // id
@@ -71,27 +93,4 @@ void Player::unserialize(std::istream &istr) {
     istr.read(reinterpret_cast<char*>(&y), sizeof(float));
     istr.read(reinterpret_cast<char*>(&z), sizeof(float));
     _scale = btVector3(x, y, z);
-
-    // Reconstruire le RigidBody
-    _collisionShape = btBoxShape{_scale};
-
-    if (_rigidBody == nullptr) {
-        _rigidBody = new RigidBody{_parent, _mass, &_collisionShape, _app->getWorld()};
-        _rigidBody->translate(Vector3(_location));
-        _rigidBody->rotate(Quaternion(_rotation));
-        _rigidBody->syncPose();
-    }
-    _rigidBody->rigidBody().getMotionState()->setWorldTransform(btTransform(btQuaternion(_rotation), _location));
-
-    _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
-    _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
-    _rigidBody->rigidBody().setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
-    _rigidBody->rigidBody().setActivationState(DISABLE_DEACTIVATION);
-
-    _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
-    _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
-
-    // Appearance
-    Color3 color = Color3(1, 1, 1);
-    setColor(color);
 }
