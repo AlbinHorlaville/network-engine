@@ -111,7 +111,6 @@ class Engine: public Platform::Application, public Serializable {
     void drawGraphics();
     void drawEvent() override;
     void tickMovments();
-    void cleanWorld();
     void tickEvent() override;
     void keyPressEvent(KeyEvent& event) override;
     void keyReleaseEvent(KeyEvent& event) override;

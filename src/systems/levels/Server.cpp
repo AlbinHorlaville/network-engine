@@ -84,6 +84,48 @@ void Server::tickEvent() {
     redraw();
 }
 
+void Server::cleanWorld() {
+    _pWorld->cleanWorld();
+
+    // Remove object if their _rigidBody have been destroyed
+    for (auto it = _objects.begin(); it != _objects.end(); ) {
+        GameObject* object = it->second;
+        object->updateDataFromBullet();
+        if (object && object->_rigidBody && object->_rigidBody->_bRigidBody) {
+            if (object->_rigidBody->_bRigidBody->getWorldTransform().getOrigin().length() > 99.0f) {
+                if (_sceneTreeUI->_selectedObject == object) {
+                    _sceneTreeUI->_selectedObject = nullptr;
+                }
+                _destroyedObjects.push_back(new DestroyedObject{object->_id, _frame});
+                _linkingContext.Unregister(object);
+                it = _objects.erase(it);
+                continue;
+            }
+        }
+        ++it;
+    }
+
+    // Clean list of destroyed objects
+    for (auto it = _destroyedObjects.begin(); it != _destroyedObjects.end(); ) {
+        DestroyedObject* obj = *it;
+
+        bool everyClientHasRemovedIt = true;
+        for (auto player : _players) {
+            if (player && player->_currentFrame < obj->frame) {
+                everyClientHasRemovedIt = false;
+                break;
+            }
+        }
+
+        if (everyClientHasRemovedIt) {
+            delete obj;
+            it = _destroyedObjects.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
 void Server::networkUpdate() {
     ENetEvent event;
     while (enet_host_service(_server, &event, 1) > 0) {
@@ -203,9 +245,17 @@ void Server::serialize(std::ostream &ostr) const {
     */
     // On sérialise le nombre d'objet que l'on sérialise
     uint16_t size_objects = _objects.size();
-    ostr.write(reinterpret_cast<const char*>(&size_objects), sizeof(uint16_t));
+    uint16_t size_destroyed_objects = _destroyedObjects.size();
+    uint16_t size_all_objects = size_objects + size_destroyed_objects;
+    ostr.write(reinterpret_cast<const char*>(&size_all_objects), sizeof(uint16_t));
     for (auto pair : _objects) {
         pair.second->serialize(ostr);
+    }
+    // id and true meaning that object has been destroyed on server
+    for (auto removed_object : _destroyedObjects) {
+        ostr.write(reinterpret_cast<const char*>(&removed_object->id), sizeof(uint32_t));
+        bool to_be_removed = true;
+        ostr.write(reinterpret_cast<const char*>(&to_be_removed), sizeof(bool));
     }
 }
 

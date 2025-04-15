@@ -10,6 +10,11 @@
 #include "entities/primitives/Player.h"
 #include <array>
 
+struct DestroyedObject {
+        uint32_t id;
+        uint64_t frame;
+};
+
 class Server : public Engine {
     public:
         explicit Server(const Arguments &arguments);
@@ -19,9 +24,11 @@ class Server : public Engine {
         std::array<Player*, 4> _players = { nullptr };
         float snapshotTimer = 0.0f;
         uint64_t _frame = 0;
+        std::list<DestroyedObject*> _destroyedObjects;
 
     public:
         void tickEvent() override;
+        void cleanWorld();
         void networkUpdate() override;
         void handleConnect(const ENetEvent &event);
         void handleReceive(const ENetEvent &event);

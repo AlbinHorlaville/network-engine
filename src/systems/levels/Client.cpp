@@ -58,7 +58,6 @@ void Client::initENet6() {
 void Client::tickEvent() {
     networkUpdate();
     tickMovments();
-    cleanWorld();
 
     // Simulation physique
     _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
@@ -181,6 +180,22 @@ void Client::unserialize(std::istream &istr) {
         // Désérialiser l'ID d'objet.
         uint32_t id;
         istr.read(reinterpret_cast<char*>(&id), sizeof(uint32_t));
+
+        // Désérialiser le booléen de destruction
+        bool has_been_destroyed;
+        istr.read(reinterpret_cast<char*>(&has_been_destroyed), sizeof(bool));
+        if (has_been_destroyed) {
+            GameObject* object = _linkingContext.GetLocalObject(id);
+            if (object) {
+                _linkingContext.Unregister(object);
+                if (_sceneTreeUI->_selectedObject == object) {
+                    _sceneTreeUI->_selectedObject = nullptr;
+                }
+                _objects.erase(object->_name);
+                _linkingContext.Unregister(object);
+            }
+            continue;
+        }
 
         GameObject* obj = _linkingContext.GetLocalObject(id);
         if (obj) { // L'objet est trouvé
