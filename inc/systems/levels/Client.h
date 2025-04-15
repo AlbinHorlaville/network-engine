@@ -18,7 +18,7 @@ class Client : public Engine {
         uint8_t _id; // Send by the server, from 0 to 3.
         ENetHost* _client;
         ENetPeer* _peer;
-        Player* _players[4];
+        std::array<Player*, 4> _players = { nullptr };
         uint8_t _frame = 0;
 
     public:

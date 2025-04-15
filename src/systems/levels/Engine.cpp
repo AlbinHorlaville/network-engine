@@ -49,18 +49,6 @@ void Engine::initSimulation() {
     GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha,
     GL::Renderer::BlendFunction::OneMinusSourceAlpha);
 
-    /* Camera setup */
-    (*(_cameraRig = new Object3D{&_scene}))
-        .translate(Vector3::yAxis(3.0f))
-        .rotateY(40.0_degf);
-    (*(_cameraObject = new Object3D{_cameraRig}))
-        .translate(Vector3::zAxis(20.0f))
-        .rotateX(-25.0_degf);
-    (_camera = new SceneGraph::Camera3D(*_cameraObject))
-        ->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
-        .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 99.0f))
-        .setViewport(GL::defaultFramebuffer.viewport().size());
-
     /* Create an instanced shader */
     _shader = Shaders::PhongGL{Shaders::PhongGL::Configuration{}
         .setFlags(Shaders::PhongGL::Flag::VertexColor|

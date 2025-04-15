@@ -12,6 +12,12 @@
 Client::Client(const Arguments &arguments): Engine(arguments) {
     initSimulation();
 
+    _cameraObject = new Object3D{&_scene};
+    (_camera = new SceneGraph::Camera3D(*_cameraObject))
+    ->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
+    .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 99.0f))
+    .setViewport(GL::defaultFramebuffer.viewport().size());
+
     // RX initialisation
     initENet6();
 }
@@ -143,6 +149,7 @@ void Client::keyPressEvent(KeyEvent &event) {
 }
 
 void Client::serialize(std::ostream &ostr) const {
+    /*
     // Serialize frame number
     ostr.write(reinterpret_cast<const char*>(&_frame), sizeof(uint64_t));
 
@@ -158,6 +165,7 @@ void Client::serialize(std::ostream &ostr) const {
     for (auto pair : _objects) {
         pair.second->serialize(ostr);
     }
+    */
 }
 
 void Client::unserialize(std::istream &istr) {
@@ -165,14 +173,23 @@ void Client::unserialize(std::istream &istr) {
     istr.read(reinterpret_cast<char*>(&_frame), sizeof(uint64_t));
 
     // Players
-    /*
-    for (int i = 0; i < 4; i++) {
+    uint8_t number_of_players;
+    istr.read(reinterpret_cast<char*>(&number_of_players), sizeof(uint8_t));
+    for (int i = 0; i < number_of_players; i++) {
         if (_players[i] == nullptr) {
             _players[i] = new Player(nullptr, this, &_scene);
         }
         _players[i]->unserialize(istr);
+        _players[i]->updateBulletFromData();
+
+        if (i == _id) {
+            Vector3 target = {0.0f, 3.0f, 0.0f};
+            Vector3 up = Vector3::yAxis();
+            Matrix4 viewMatrix = Matrix4::lookAt(Vector3(_players[i]->_location), target, up);
+            _cameraObject->setTransformation(viewMatrix);
+        }
     }
-    */
+
     // Objets
     uint16_t size_objects;
     istr.read(reinterpret_cast<char*>(&size_objects), sizeof(uint16_t));

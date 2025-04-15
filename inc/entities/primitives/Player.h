@@ -14,7 +14,8 @@ public:
     ENetPeer *_peer;
     uint64_t _currentFrame = 0;
 
-    Player(ENetPeer *peer, Engine* app, Object3D *parent, uint8_t id = 5);
+    Player(ENetPeer *peer, Engine* app, Object3D *parent);
+    Player(ENetPeer *peer, Engine* app, Object3D *parent, uint8_t id);
     ~Player() = default;
 
     void updateBulletFromData() override;

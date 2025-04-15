@@ -16,6 +16,18 @@
 Server::Server(const Arguments &arguments): Engine(arguments) {
     initSimulation();
 
+    /* Camera setup */
+    (*(_cameraRig = new Object3D{&_scene}))
+        .translate(Vector3::yAxis(3.0f))
+        .rotateY(40.0_degf);
+    (*(_cameraObject = new Object3D{_cameraRig}))
+        .translate(Vector3::zAxis(20.0f))
+        .rotateX(-25.0_degf);
+    (_camera = new SceneGraph::Camera3D(*_cameraObject))
+        ->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
+        .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 99.0f))
+        .setViewport(GL::defaultFramebuffer.viewport().size());
+
     /* Create the ground */
     auto *ground = new Cube(this, "Floor", &_scene, {5.0f, 0.5f, 5.0f}, 0.f, 0xffffff_rgbf);
     addObject(ground);
@@ -86,6 +98,12 @@ void Server::tickEvent() {
 
 void Server::cleanWorld() {
     _pWorld->cleanWorld();
+
+    for (auto player : _players) {
+        if (player) {
+            player->updateDataFromBullet();
+        }
+    }
 
     // Remove object if their _rigidBody have been destroyed
     for (auto it = _objects.begin(); it != _objects.end(); ) {
@@ -167,7 +185,6 @@ void Server::handleConnect(const ENetEvent &event) {
         if (_players[i] == nullptr) {
             std::cout << "Creation d'un nouveau player..." << std::endl;
             _players[i] = new Player(event.peer, this, &_scene, i);
-            _players[i]->_rigidBody->translate({-5.0f, 4.0f, -5.0f + static_cast<float>(i)});
 
             // Send ID of the player
             std::ostringstream oss(std::ios::binary);
@@ -236,13 +253,19 @@ void Server::serialize(std::ostream &ostr) const {
     ostr.write(reinterpret_cast<const char*>(&_frame), sizeof(uint64_t));
 
     // Sérialiser les players
-    /*
+    uint8_t number_of_players = 0;
+    for (auto player : _players) {
+        if (player) {
+            number_of_players++;
+        }
+    }
+    ostr.write(reinterpret_cast<const char*>(&number_of_players), sizeof(uint8_t));
     for (int i = 0; i < 4; i++) {
         if (_players[i]) {
             _players[i]->serialize(ostr);
         }
     }
-    */
+
     // On sérialise le nombre d'objet que l'on sérialise
     uint16_t size_objects = _objects.size();
     uint16_t size_destroyed_objects = _destroyedObjects.size();
@@ -260,18 +283,17 @@ void Server::serialize(std::ostream &ostr) const {
 }
 
 void Server::unserialize(std::istream &istr) {
+    /*
     // Unserialize frame number
     istr.read(reinterpret_cast<char*>(&_frame), sizeof(uint64_t));
 
     // Players
-    /*
     for (int i = 0; i < 4; i++) {
         if (_players[i] == nullptr) {
             _players[i] = new Player(5, nullptr, this, &_scene);
         }
         _players[i]->unserialize(istr);
     }
-    */
 
     // Objets
     uint16_t size_objects;
@@ -309,4 +331,5 @@ void Server::unserialize(std::istream &istr) {
             }
         }
     }
+    */
 }

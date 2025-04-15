@@ -118,9 +118,6 @@ void Sphere::updateBulletFromData() {
     _rigidBody->rigidBody().setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
     _rigidBody->rigidBody().setActivationState(DISABLE_DEACTIVATION);
 
-    _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
-    _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
-
     // Appearance
     setColor(_color);
 }

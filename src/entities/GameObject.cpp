@@ -82,7 +82,10 @@ void GameObject::serialize(std::ostream &ostr) const {
 }
 
 void GameObject::unserialize(std::istream &istr) {
-    // La désérialisation de l'id se fait avant l'appel de cette méthode (le booléen de destruction aussi)
+    // - La désérialisation de l'id se fait avant l'appel de cette méthode
+    // - le booléen de destruction aussi
+    // - le type aussi
+
     size_t length;
     istr.read(reinterpret_cast<char*>(&length), sizeof(size_t));
 
