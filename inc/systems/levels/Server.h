@@ -18,6 +18,7 @@ class Server : public Engine {
         ENetHost* _server;
         std::array<Player*, 4> _players = { nullptr };
         float snapshotTimer = 0.0f;
+        uint64_t _frame = 0;
 
     public:
         void tickEvent() override;

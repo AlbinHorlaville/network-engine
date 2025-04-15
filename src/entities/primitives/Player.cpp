@@ -4,7 +4,7 @@
 #include "entities/primitives/Player.h"
 
 
-Player::Player(const uint8_t id, ENetPeer *peer, Engine* app, Object3D *parent) :
+Player::Player(ENetPeer *peer, Engine* app, Object3D *parent, const uint8_t id) :
     GameObject("Player " + std::to_string(id), 0), _collisionShape(btVector3(0.2f, 0.2f, 0.2f))
 {
     _peer = peer;

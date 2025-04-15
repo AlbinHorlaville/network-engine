@@ -11,6 +11,8 @@
 
 #include <systems/network/PackageType.h>
 
+#include "../../../cmake-build-debug/_deps/bullet-src/examples/SharedMemory/plugins/b3PluginAPI.h"
+
 Server::Server(const Arguments &arguments): Engine(arguments) {
     initSimulation();
 
@@ -69,6 +71,7 @@ void Server::initENet6() {
 }
 
 void Server::tickEvent() {
+    ++_frame;
     tickMovments();
     cleanWorld();
     networkUpdate();
@@ -79,6 +82,9 @@ void Server::tickEvent() {
     // Avance la timeline et redessine
     _timeline.nextFrame();
     redraw();
+
+    if (_players[0])
+        std::cout << "Frame :" << _frame  << " Client : " << _players[0]->_currentFrame << std::endl;
 }
 
 void Server::networkUpdate() {
@@ -121,7 +127,7 @@ void Server::handleConnect(const ENetEvent &event) {
     for (int i = 0; i < 4; i++) {
         if (_players[i] == nullptr) {
             std::cout << "Creation d'un nouveau player..." << std::endl;
-            _players[i] = new Player(i, event.peer, this, &_scene);
+            _players[i] = new Player(event.peer, this, &_scene, i);
             _players[i]->_rigidBody->translate({-5.0f, 4.0f, -5.0f + static_cast<float>(i)});
 
             // Send ID of the player
@@ -132,7 +138,7 @@ void Server::handleConnect(const ENetEvent &event) {
 
             std::string data = oss.str();
             ENetPacket* packet = enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE);
-            enet_peer_send(_players[i]->_peer, event.channelID, packet);
+            enet_peer_send(_players[i]->_peer, 1, packet);
             std::cout << "Id " << i << " sent to the client." << std::endl;
             break;
         }
@@ -140,7 +146,23 @@ void Server::handleConnect(const ENetEvent &event) {
 }
 
 void Server::handleReceive(const ENetEvent &event) {
-    std::cout << "Package received on canal " << event.channelID << " : " << reinterpret_cast<char *>(event.packet->data) << std::endl;
+    size_t payloadSize = event.packet->dataLength;
+    const char* payload = reinterpret_cast<const char*>(event.packet->data);
+    std::istringstream iss(std::string(payload, payloadSize), std::ios::binary);
+    PackageType type;
+    iss.read(reinterpret_cast<char*>(&type), sizeof(type));
+
+    switch (type) {
+        case MSG_WORLD_ACK: {
+            uint8_t id_client;
+            iss.read(reinterpret_cast<char*>(&id_client), sizeof(id_client));
+            uint64_t frame;
+            iss.read(reinterpret_cast<char*>(&frame), sizeof(frame));
+            _players[id_client]->_currentFrame = frame;
+            break;
+        }
+        default: break;
+    }
 }
 
 void Server::handleDisconnect(const ENetEvent &event) {
@@ -165,12 +187,15 @@ void Server::sendSnapshot() {
 
     for (auto player : _players) {
         if (player) {
-            enet_peer_send(player->_peer, 0, packet);
+            enet_peer_send(player->_peer, 1, packet);
         }
     }
 }
 
 void Server::serialize(std::ostream &ostr) const {
+    // Serialize frame number
+    ostr.write(reinterpret_cast<const char*>(&_frame), sizeof(uint64_t));
+
     // Sérialiser les players
     /*
     for (int i = 0; i < 4; i++) {
@@ -188,6 +213,9 @@ void Server::serialize(std::ostream &ostr) const {
 }
 
 void Server::unserialize(std::istream &istr) {
+    // Unserialize frame number
+    istr.read(reinterpret_cast<char*>(&_frame), sizeof(uint64_t));
+
     // Players
     /*
     for (int i = 0; i < 4; i++) {

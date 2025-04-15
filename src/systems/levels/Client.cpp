@@ -48,10 +48,6 @@ void Client::initENet6() {
     ENetEvent event;
     if (enet_host_service(_client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
         std::cout << "Connected to the server." << std::endl;
-
-        const char* msg = "Hi server !";
-        ENetPacket* packet = enet_packet_create(msg, std::strlen(msg) + 1, ENET_PACKET_FLAG_RELIABLE);
-        enet_peer_send(_peer, 0, packet);
     } else {
         std::cerr << "Connection to the server failed." << std::endl;
         enet_peer_reset(_peer);
@@ -109,6 +105,7 @@ void Client::handleReceive(const ENetEvent &event) {
         }
         case MSG_WORLD_SYNC: {
             unserialize(iss);
+            sendSnapshotACK(event.peer);
             break;
         }
         default: break;
@@ -119,6 +116,25 @@ void Client::handleDisconnect(const ENetEvent &event) {
     std::cout << "Disconnected from the server." << std::endl;
 }
 
+void Client::sendSnapshotACK(ENetPeer *peer) {
+    std::ostringstream oss(std::ios::binary);
+
+    // Mettre le flag
+    PackageType flag = MSG_WORLD_ACK;
+    oss.write(reinterpret_cast<const char*>(&flag), sizeof(flag));
+    oss.write(reinterpret_cast<const char*>(&_id), sizeof(_id));
+    oss.write(reinterpret_cast<const char*>(&_frame), sizeof(_frame));
+
+    std::string data = oss.str();
+    ENetPacket* packet = enet_packet_create(
+        data.data(), data.size(),
+        ENET_PACKET_FLAG_RELIABLE
+    );
+
+    enet_peer_send(peer, 1, packet);
+}
+
+
 void Client::pointerPressEvent(PointerEvent &event) {
     if(_imgui.handlePointerPressEvent(event)) return;
 }
@@ -128,6 +144,9 @@ void Client::keyPressEvent(KeyEvent &event) {
 }
 
 void Client::serialize(std::ostream &ostr) const {
+    // Serialize frame number
+    ostr.write(reinterpret_cast<const char*>(&_frame), sizeof(uint64_t));
+
     // Sérialiser les players
     for (int i = 0; i < 4; i++) {
         if (_players[i]) {
@@ -143,11 +162,14 @@ void Client::serialize(std::ostream &ostr) const {
 }
 
 void Client::unserialize(std::istream &istr) {
+    // Unserialize frame number
+    istr.read(reinterpret_cast<char*>(&_frame), sizeof(uint64_t));
+
     // Players
     /*
     for (int i = 0; i < 4; i++) {
         if (_players[i] == nullptr) {
-            _players[i] = new Player(5, nullptr, this, &_scene);
+            _players[i] = new Player(nullptr, this, &_scene);
         }
         _players[i]->unserialize(istr);
     }

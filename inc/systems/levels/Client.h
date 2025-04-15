@@ -19,12 +19,14 @@ class Client : public Engine {
         ENetHost* _client;
         ENetPeer* _peer;
         Player* _players[4];
+        uint8_t _frame = 0;
 
     public:
         void tickEvent() override;
         void networkUpdate() override;
         void handleReceive(const ENetEvent &event);
         void handleDisconnect(const ENetEvent &event);
+        void sendSnapshotACK(ENetPeer *peer);
         void initENet6();
         void pointerPressEvent(PointerEvent& event) override;
         void keyPressEvent(KeyEvent& event) override;
