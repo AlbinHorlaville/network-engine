@@ -55,30 +55,33 @@ struct InstanceData {
 };
 
 struct FPSHandler {
-    std::chrono::steady_clock::time_point _lastFrameTime;
-    int _frameCount = 0;
-    float _accumulatedTime = 0.0f;
-
-    void init() {
-        _lastFrameTime = std::chrono::steady_clock::now();
-    }
-
-    void update() {
-        auto now = std::chrono::steady_clock::now();
-        float deltaTime = std::chrono::duration<float>(now - _lastFrameTime).count();
-        _lastFrameTime = now;
-
-        _accumulatedTime += deltaTime;
-        _frameCount++;
-
-        if (_accumulatedTime >= 1.0f) {
-            float fps = _frameCount / _accumulatedTime;
-            std::cout << "FPS: " << fps << std::endl;
-
-            _frameCount = 0;
-            _accumulatedTime = 0.0f;
+    private:
+        std::chrono::steady_clock::time_point _lastFrameTime;
+        int _frameCount = 0;
+        float _accumulatedTime = 0.0f;
+        float _fps = 0.0f;
+    public:
+        void init() {
+            _lastFrameTime = std::chrono::steady_clock::now();
         }
-    }
+
+        void update() {
+            auto now = std::chrono::steady_clock::now();
+            float deltaTime = std::chrono::duration<float>(now - _lastFrameTime).count();
+            _lastFrameTime = now;
+
+            _accumulatedTime += deltaTime;
+            _frameCount++;
+
+            if (_accumulatedTime >= 1.0f) {
+                _fps = _frameCount / _accumulatedTime;
+                _frameCount = 0;
+                _accumulatedTime = 0.0f;
+            }
+        }
+        float get() const {
+            return _fps;
+        }
 };
 
 struct DeltaTimer {

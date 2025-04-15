@@ -82,9 +82,6 @@ void Server::tickEvent() {
     // Avance la timeline et redessine
     _timeline.nextFrame();
     redraw();
-
-    if (_players[0])
-        std::cout << "Frame :" << _frame  << " Client : " << _players[0]->_currentFrame << std::endl;
 }
 
 void Server::networkUpdate() {
@@ -155,9 +152,9 @@ void Server::handleReceive(const ENetEvent &event) {
     switch (type) {
         case MSG_WORLD_ACK: {
             uint8_t id_client;
-            iss.read(reinterpret_cast<char*>(&id_client), sizeof(id_client));
+            iss.read(reinterpret_cast<char*>(&id_client), sizeof(uint8_t));
             uint64_t frame;
-            iss.read(reinterpret_cast<char*>(&frame), sizeof(frame));
+            iss.read(reinterpret_cast<char*>(&frame), sizeof(uint64_t));
             _players[id_client]->_currentFrame = frame;
             break;
         }

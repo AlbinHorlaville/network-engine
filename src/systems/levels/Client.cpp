@@ -121,9 +121,9 @@ void Client::sendSnapshotACK(ENetPeer *peer) {
 
     // Mettre le flag
     PackageType flag = MSG_WORLD_ACK;
-    oss.write(reinterpret_cast<const char*>(&flag), sizeof(flag));
-    oss.write(reinterpret_cast<const char*>(&_id), sizeof(_id));
-    oss.write(reinterpret_cast<const char*>(&_frame), sizeof(_frame));
+    oss.write(reinterpret_cast<const char*>(&flag), sizeof(PackageType));
+    oss.write(reinterpret_cast<const char*>(&_id), sizeof(uint8_t));
+    oss.write(reinterpret_cast<const char*>(&_frame), sizeof(uint64_t));
 
     std::string data = oss.str();
     ENetPacket* packet = enet_packet_create(

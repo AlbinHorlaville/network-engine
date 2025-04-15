@@ -114,6 +114,11 @@ void Engine::drawImGUI() {
     // Render ImGui
     _sceneTreeUI->DrawSceneTree();
 
+    // Show FPS
+    ImGui::Begin("Performances", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Text("FPS : %f", fps_handler.get());
+    ImGui::End();
+
     // 🔹 Fenêtre d'inspection de l'objet sélectionné
     if (_sceneTreeUI->_selectedObject) {
         ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
