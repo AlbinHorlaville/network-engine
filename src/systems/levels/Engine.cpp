@@ -16,20 +16,7 @@
 #include <Magnum/ImGuiIntegration/Context.hpp>
 
 
-Engine::Engine(const Arguments &arguments) : Platform::Application(arguments, NoCreate) {}
-
-Engine::~Engine() {
-    delete _drawables;
-    delete _pWorld;
-    delete _pProjectileManager;
-    delete _camera;
-    delete _cameraRig;
-    delete _cameraObject;
-}
-
-void Engine::initSimulation() {
-        /* Try 8x MSAA, fall back to zero samples if not possible. Enable only 2x
-       MSAA if we have enough DPI. */
+Engine::Engine(const Arguments &arguments) : Platform::Application(arguments, NoCreate) {
     {
         const Vector2 dpiScaling = this->dpiScaling({});
         Configuration conf;
@@ -49,6 +36,19 @@ void Engine::initSimulation() {
     GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha,
     GL::Renderer::BlendFunction::OneMinusSourceAlpha);
 
+    startTextInput();
+}
+
+Engine::~Engine() {
+    delete _drawables;
+    delete _pWorld;
+    delete _pProjectileManager;
+    delete _camera;
+    delete _cameraRig;
+    delete _cameraObject;
+}
+
+void Engine::initSimulation() {
     /* Camera setup */
     (*(_cameraRig = new Object3D{&_scene}))
         .translate(Vector3::yAxis(3.0f))

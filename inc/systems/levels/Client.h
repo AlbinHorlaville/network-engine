@@ -9,6 +9,14 @@
 #include "entities/primitives/Player.h"
 #include "Engine.h"
 
+enum ClientState {
+    Not_logged_in,
+    Logged_in,
+    In_queue,
+    Found_match,
+    In_game,
+};
+
 class Client : public Engine {
     public:
         explicit Client(const Arguments &arguments);
@@ -19,6 +27,9 @@ class Client : public Engine {
         ENetHost* _client;
         ENetPeer* _peer;
         Player* _players[4];
+        ClientState _state = Not_logged_in;
+        int connectTypeOption = 0;
+
 
     public:
         void tickEvent() override;
@@ -28,8 +39,12 @@ class Client : public Engine {
         void initENet6();
         void pointerPressEvent(PointerEvent& event) override;
         void keyPressEvent(KeyEvent& event) override;
+        void keyReleaseEvent(KeyEvent& event) override;
+        void textInputEvent(TextInputEvent& event) override;
+        void drawEvent() override;
         void serialize(std::ostream &ostr) const override;
         void unserialize(std::istream &istr) override;
+        void drawLoginWindow();
 };
 
 

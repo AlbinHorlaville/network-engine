@@ -8,12 +8,12 @@
 #include "systems/levels/Client.h"
 #include "systems/network/PackageType.h"
 #include <entities/primitives/Sphere.h>
+#include <imgui.h>
+#include <Magnum/ImGuiIntegration/Context.hpp>
 
 Client::Client(const Arguments &arguments): Engine(arguments) {
-    initSimulation();
-
-    // RX initialisation
-    initENet6();
+    setSwapInterval(1); // optional vsync
+    redraw();
 }
 
 Client::~Client() {
@@ -60,16 +60,25 @@ void Client::initENet6() {
 }
 
 void Client::tickEvent() {
-    networkUpdate();
-    tickMovments();
-    cleanWorld();
+    glfwPollEvents();
 
-    // Simulation physique
-    _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
+    switch(_state) {
+        case (Logged_in) :
+            networkUpdate();
+            tickMovments();
+            cleanWorld();
 
-    // Avance la timeline et redessine
-    _timeline.nextFrame();
-    redraw();
+            // Simulation physique
+            _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
+
+            // Avance la timeline et redessine
+            _timeline.nextFrame();
+        break;
+        default:
+            break;
+
+    }
+
 }
 
 void Client::networkUpdate() {
@@ -119,12 +128,96 @@ void Client::handleDisconnect(const ENetEvent &event) {
     std::cout << "Disconnected from the server." << std::endl;
 }
 
+void Client::drawEvent() {
+    GL::defaultFramebuffer.clear(GL::FramebufferClear::Color | GL::FramebufferClear::Depth);
+
+    switch(_state) {
+        case (Logged_in):
+            drawGraphics();
+            drawImGUI();
+            fps_handler.update();
+        break;
+        case (Not_logged_in) :
+            _imgui.newFrame();
+
+            drawLoginWindow();
+
+            // Setup rendering
+            GL::Renderer::enable(GL::Renderer::Feature::Blending);
+            GL::Renderer::enable(GL::Renderer::Feature::ScissorTest);
+            GL::Renderer::disable(GL::Renderer::Feature::FaceCulling);
+            GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
+
+            _imgui.drawFrame();  // End ImGui frame (only once!)
+
+            GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
+            GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
+            GL::Renderer::disable(GL::Renderer::Feature::ScissorTest);
+            GL::Renderer::disable(GL::Renderer::Feature::Blending);
+        break;
+        default:
+            break;
+    }
+
+    swapBuffers();
+    redraw();
+};
+
+void Client::drawLoginWindow() {
+    ImVec2 windowSize = ImGui::GetMainViewport()->Size;
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always, ImVec2(0.0f, 0.0f)); // Place window in top-left corner
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y)); // Set a dynamic size corresponding to parent window size
+
+    if (ImGui::Begin("Welcome", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        static char usernameLogin[64] = "";
+        static char passwordLogin[64] = "";
+
+        if (ImGui::RadioButton("Login", connectTypeOption == 0)) connectTypeOption = 0;
+        if (ImGui::RadioButton("Register", connectTypeOption == 1)) connectTypeOption = 1;
+
+        if (ImGui::InputText("Username", usernameLogin, IM_ARRAYSIZE(usernameLogin), ImGuiInputTextFlags_None)) {
+            // You can add additional logic here for handling username input
+        }
+        if (ImGui::InputText("Password", passwordLogin, IM_ARRAYSIZE(passwordLogin), ImGuiInputTextFlags_Password)) {
+            // You can add additional logic here for handling password input
+        }
+
+        if (ImGui::Button("Connect")) {
+            if (connectTypeOption == 0) //Login mode
+            {
+                initSimulation();
+                // RX initialisation
+                initENet6();
+                _state = Logged_in;
+            }
+            else //Register mode
+            {
+                initSimulation();
+                // RX initialisation
+                initENet6();
+                _state = Logged_in;
+            }
+        }
+
+        ImGui::End();
+    }
+}
+
 void Client::pointerPressEvent(PointerEvent &event) {
     if(_imgui.handlePointerPressEvent(event)) return;
 }
 
 void Client::keyPressEvent(KeyEvent &event) {
+    if (_imgui.handleKeyPressEvent(event)) return;
+}
 
+void Client::keyReleaseEvent(KeyEvent& event) {
+    if (_imgui.handleKeyReleaseEvent(event)) return;
+}
+
+void Client::textInputEvent(TextInputEvent& event) {
+    std::cout << "Text input event: " << std::endl;
+    if (_imgui.handleTextInputEvent(event)) return;
 }
 
 void Client::serialize(std::ostream &ostr) const {
