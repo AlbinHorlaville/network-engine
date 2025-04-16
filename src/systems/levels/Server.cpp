@@ -9,6 +9,7 @@
 #include <Magnum/ImGuiIntegration/Context.hpp>
 #include "systems/levels/Server.h"
 
+#include <sys/stat.h>
 #include <systems/network/PackageType.h>
 
 #include "../../../cmake-build-debug/_deps/bullet-src/examples/SharedMemory/plugins/b3PluginAPI.h"
@@ -215,6 +216,31 @@ void Server::handleReceive(const ENetEvent &event) {
             uint64_t frame;
             iss.read(reinterpret_cast<char*>(&frame), sizeof(uint64_t));
             _players[id_client]->_currentFrame = frame;
+            break;
+        }
+        case MSG_INPUTS: {
+            uint8_t id_client;
+            iss.read(reinterpret_cast<char*>(&id_client), sizeof(uint8_t));
+            Input inputs = Input::None;
+            iss.read(reinterpret_cast<char*>(&inputs), sizeof(uint8_t));
+
+            const float moveSpeed = 10.f;
+            const float deltaTime = _timeline.previousFrameDuration();
+            Vector3 move;
+            Player* player = _players[id_client];
+            if (hasFlag(inputs, Input::MoveForward))  move += Vector3::zAxis(-moveSpeed * deltaTime);
+            if (hasFlag(inputs, Input::MoveBackward)) move += Vector3::zAxis(moveSpeed * deltaTime);
+            if (hasFlag(inputs, Input::MoveLeft))     move += Vector3::xAxis(-moveSpeed * deltaTime);
+            if (hasFlag(inputs, Input::MoveRight))    move += Vector3::xAxis(moveSpeed * deltaTime);
+            if (hasFlag(inputs, Input::MoveUp))       move += Vector3::yAxis(moveSpeed * deltaTime);
+            if (hasFlag(inputs, Input::MoveDown))     move += Vector3::yAxis(-moveSpeed * deltaTime);
+            player->_rigidBody->translate(move);
+            player->_rigidBody->syncPose();
+            //player->updateDataFromBullet();
+            //std::cout << "Translation :" << move.x() << " " << move.y() << " " << move.z() << std::endl;
+            //std::cout << " New Pos : " <<player->_location.x() << " " << player->_location.y()  << " " << player->_location.z() << std::endl;
+            std::bitset<8> bits(static_cast<uint8_t>(inputs));
+            std::cout << "Received inputs bitmask: " << bits << std::endl;
             break;
         }
         default: break;

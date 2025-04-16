@@ -8,6 +8,7 @@
 #include "enet6/enet.h"
 #include "entities/primitives/Player.h"
 #include "Engine.h"
+#include "systems/network/PackageType.h"
 
 enum ClientState {
     Not_logged_in,
@@ -31,6 +32,7 @@ class Client : public Engine {
 
         std::array<Player*, 4> _players = { nullptr };
         uint8_t _frame = 0;
+        Input* _inputs = nullptr;
 
     public:
         void tickEvent() override;
@@ -38,6 +40,7 @@ class Client : public Engine {
         void handleReceive(const ENetEvent &event);
         void handleDisconnect(const ENetEvent &event);
         void sendSnapshotACK(ENetPeer *peer);
+        void sendInputs();
         void initENet6();
         void pointerPressEvent(PointerEvent& event) override;
         void keyPressEvent(KeyEvent& event) override;

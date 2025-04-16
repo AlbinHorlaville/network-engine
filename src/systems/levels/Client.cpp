@@ -19,6 +19,7 @@ Client::Client(const Arguments &arguments): Engine(arguments) {
     ->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
     .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 99.0f))
     .setViewport(GL::defaultFramebuffer.viewport().size());
+    _inputs = new Input(Input::None);
 }
 
 Client::~Client() {
@@ -67,7 +68,7 @@ void Client::tickEvent() {
         case (Logged_in) :
             networkUpdate();
             tickMovments();
-
+            sendInputs();
             // Simulation physique
             _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
 
@@ -76,7 +77,6 @@ void Client::tickEvent() {
         break;
         default:
             break;
-
     }
 
 }
@@ -222,6 +222,28 @@ void Client::sendSnapshotACK(ENetPeer *peer) {
     enet_peer_send(peer, 1, packet);
 }
 
+void Client::sendInputs() {
+    std::ostringstream oss(std::ios::binary);
+
+    // Mettre le flag
+    PackageType flag = MSG_INPUTS;
+    oss.write(reinterpret_cast<const char*>(&flag), sizeof(PackageType));
+    oss.write(reinterpret_cast<const char*>(&_id), sizeof(uint8_t));
+    oss.write(reinterpret_cast<const char*>(_inputs), sizeof(uint8_t));
+    // TODO : Calculer le ping
+    // TODO : Gérer le shoot
+    std::bitset<8> bits(static_cast<uint8_t>(*_inputs));
+    std::cout << "Received inputs bitmask: " << bits << std::endl;
+
+    std::string data = oss.str();
+    ENetPacket* packet = enet_packet_create(
+        data.data(), data.size(),
+        ENET_PACKET_FLAG_RELIABLE
+    );
+
+    enet_peer_send(_peer, 0, packet);
+}
+
 
 void Client::pointerPressEvent(PointerEvent &event) {
     if(_imgui.handlePointerPressEvent(event)) return;
@@ -229,10 +251,28 @@ void Client::pointerPressEvent(PointerEvent &event) {
 
 void Client::keyPressEvent(KeyEvent &event) {
     if (_imgui.handleKeyPressEvent(event)) return;
+    switch(event.key()) {
+        case Key::W: *_inputs = *_inputs | Input::MoveForward; break;
+        case Key::S: *_inputs = *_inputs | Input::MoveBackward; break;
+        case Key::A: *_inputs = *_inputs | Input::MoveLeft; break;
+        case Key::D: *_inputs = *_inputs | Input::MoveRight; break;
+        case Key::Q: *_inputs = *_inputs | Input::MoveUp; break;
+        case Key::E: *_inputs = *_inputs | Input::MoveDown; break;
+        default: break;
+    }
 }
 
 void Client::keyReleaseEvent(KeyEvent& event) {
     if (_imgui.handleKeyReleaseEvent(event)) return;
+    switch (event.key()) {
+        case Key::W: *_inputs = *_inputs & ~Input::MoveForward; break;
+        case Key::S: *_inputs = *_inputs & ~Input::MoveBackward; break;
+        case Key::A: *_inputs = *_inputs & ~Input::MoveLeft; break;
+        case Key::D: *_inputs = *_inputs & ~Input::MoveRight; break;
+        case Key::Q: *_inputs = *_inputs & ~Input::MoveUp; break;
+        case Key::E: *_inputs = *_inputs & ~Input::MoveDown; break;
+        default: break;
+    }
 }
 
 void Client::textInputEvent(TextInputEvent& event) {
