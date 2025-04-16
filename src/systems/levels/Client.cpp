@@ -67,7 +67,6 @@ void Client::tickEvent() {
         case (Logged_in) :
             networkUpdate();
             tickMovments();
-            cleanWorld();
 
             // Simulation physique
             _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);

@@ -21,12 +21,6 @@ set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 file(GLOB_RECURSE COMMON_SOURCES src/components/*.cpp src/entities/*.cpp src/systems/*.cpp)
 message(STATUS "COMMON_SOURCES: ${COMMON_SOURCES}")
 
-# --- Executable principal Moteur ---
-add_executable(Moteur
-        ${COMMON_SOURCES}
-        src/main.cpp
-)
-
 # --- Executable Serveur ---
 add_executable(Serveur
         ${COMMON_SOURCES}
@@ -39,7 +33,7 @@ add_executable(Client
         src/client/client.cpp
 )
 
-foreach(target IN ITEMS Moteur Serveur Client)
+foreach(target IN ITEMS Serveur Client)
     target_include_directories(${target} PUBLIC inc)
     set_property(TARGET ${target} PROPERTY CXX_STANDARD 20)
     target_link_libraries(${target} PRIVATE

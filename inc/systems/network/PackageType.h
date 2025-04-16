@@ -5,8 +5,6 @@
 #ifndef PACKAGETYPE_H
 #define PACKAGETYPE_H
 
-#include <bits/fs_fwd.h>
-
 enum PackageType : uint8_t {
     MSG_ASSIGN_ID = 0,
     MSG_WORLD_SYNC = 1,
