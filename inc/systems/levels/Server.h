@@ -35,7 +35,6 @@ class Server : public Engine {
         ~Server();
     private:
         ENetHost* _server;
-        std::array<Player*, 4> _players = { nullptr };
         float snapshotTimer = 0.0f;
         uint64_t _frame = 0;
         std::list<DestroyedObject*> _destroyedObjects;

@@ -136,6 +136,7 @@ void Client::drawEvent() {
         case (Logged_in):
             drawGraphics();
             drawImGUI();
+
             fps_handler.update();
         break;
         case (Not_logged_in) :

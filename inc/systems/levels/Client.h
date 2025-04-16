@@ -30,7 +30,6 @@ class Client : public Engine {
         ClientState _state = Not_logged_in;
         int connectTypeOption = 0;
 
-        std::array<Player*, 4> _players = { nullptr };
         uint8_t _frame = 0;
         Input* _inputs = nullptr;
 

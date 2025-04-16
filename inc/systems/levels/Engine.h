@@ -36,7 +36,6 @@
 #include "systems/network/LinkingContext.h"
 #include "Magnum/ImGuiIntegration/Context.h"
 
-
 class GameObject;
 class PhysicsWorld;
 class ProjectileManager;
@@ -95,6 +94,8 @@ struct DeltaTimer {
     }
 };
 
+class Player;
+
 class Engine: public Platform::Application, public Serializable {
     public:
       explicit Engine(const Arguments &arguments);
@@ -130,6 +131,7 @@ class Engine: public Platform::Application, public Serializable {
     ProjectileManager* _pProjectileManager;
 
     Scene3D _scene;
+    std::array<Player*, 4> _players = { nullptr };
     FPSHandler fps_handler;
     DeltaTimer deltaTime;
     SceneGraph::Camera3D* _camera;

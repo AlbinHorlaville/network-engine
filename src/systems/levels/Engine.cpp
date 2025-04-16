@@ -12,6 +12,7 @@
 #include "components/RigidBody.h"
 #include "entities/primitives/Cube.h"
 #include <Magnum/ImGuiIntegration/Context.hpp>
+#include "entities/primitives/Player.h"
 
 
 Engine::Engine(const Arguments &arguments) : Platform::Application(arguments, NoCreate) {
@@ -115,6 +116,15 @@ void Engine::drawImGUI() {
     // Show FPS
     ImGui::Begin("Performances", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text("FPS : %f", fps_handler.get());
+    ImGui::End();
+
+    // LeaderBoard
+    ImGui::Begin("Leaderboard", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    for (int i = 0; i<_players.size(); i++) {
+        if (_players[i]) {
+            ImGui::Text("Player %d : %d", i, _players[i]->_score);
+        }
+    }
     ImGui::End();
 
     // 🔹 Fenêtre d'inspection de l'objet sélectionné

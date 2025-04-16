@@ -95,7 +95,7 @@ void Player::updateBulletFromData() {
 void Player::serialize(std::ostream &ostr) const {
     // id
     ostr.write(reinterpret_cast<const char*>(&_playerID), sizeof(uint8_t)); // Gérer quand on déserialise, faut trouver le bon player
-
+    ostr.write(reinterpret_cast<const char*>(&_score), sizeof(uint16_t));
     GameObject::serialize(ostr);
 
     // Serialize Scale
@@ -114,6 +114,8 @@ void Player::unserialize(std::istream &istr) {
     else if (_playerID != checkID) {
         std::cerr << "Player::unserialize(): invalid id. Current : " << _playerID << ", Serialized : " << checkID << std::endl;
     }
+
+    istr.read(reinterpret_cast<char*>(&_score), sizeof(uint16_t));
 
     // Useless id for the player
     uint32_t useless_id;
