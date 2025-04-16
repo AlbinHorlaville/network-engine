@@ -232,8 +232,6 @@ void Client::sendInputs() {
     oss.write(reinterpret_cast<const char*>(_inputs), sizeof(uint8_t));
     // TODO : Calculer le ping
     // TODO : Gérer le shoot
-    std::bitset<8> bits(static_cast<uint8_t>(*_inputs));
-    std::cout << "Received inputs bitmask: " << bits << std::endl;
 
     std::string data = oss.str();
     ENetPacket* packet = enet_packet_create(

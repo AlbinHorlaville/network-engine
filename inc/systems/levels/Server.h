@@ -15,6 +15,20 @@ struct DestroyedObject {
         uint64_t frame;
 };
 
+struct CollisionCallback : public btCollisionWorld::ContactResultCallback {
+    std::function<void(btRigidBody*, btRigidBody*)> onCollision;
+
+    btScalar addSingleResult(btManifoldPoint& cp,
+                             const btCollisionObjectWrapper* colObj0Wrap, int, int,
+                             const btCollisionObjectWrapper* colObj1Wrap, int, int) override {
+        auto* rbA = const_cast<btRigidBody*>(btRigidBody::upcast(colObj0Wrap->getCollisionObject()));
+        auto* rbB = const_cast<btRigidBody*>(btRigidBody::upcast(colObj1Wrap->getCollisionObject()));
+        if (rbA && rbB && onCollision)
+            onCollision(rbA, rbB);
+        return 0; // Bullet ignore la valeur de retour dans ce cas
+    }
+};
+
 class Server : public Engine {
     public:
         explicit Server(const Arguments &arguments);
@@ -33,6 +47,7 @@ class Server : public Engine {
         void handleConnect(const ENetEvent &event);
         void handleReceive(const ENetEvent &event);
         void handleDisconnect(const ENetEvent &event);
+        void handleCollision();
         void sendSnapshot();
         void initENet6();
         void serialize(std::ostream &ostr) const override;

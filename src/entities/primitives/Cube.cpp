@@ -18,6 +18,7 @@ Cube::Cube(Engine* app, std::string name, Object3D *parent, const btVector3 scal
 
     // Physics
     this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
+    _rigidBody->_bRigidBody->setUserPointer(static_cast<void*>(this));
 
     // Appearances
     Cube::setColor(color);
@@ -34,7 +35,7 @@ Cube::Cube(Engine* app, Object3D* parent, const btVector3 scale, const float mas
 
     // Physics
     this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
-
+    _rigidBody->_bRigidBody->setUserPointer(static_cast<void*>(this));
     // Appearance
     Cube::setColor(color);
 }

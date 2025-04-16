@@ -38,7 +38,7 @@ Server::Server(const Arguments &arguments): Engine(arguments) {
     for (Int i = 0; i != 3; ++i) {
         for (Int j = 0; j != 3; ++j) {
             for (Int k = 0; k != 3; ++k) {
-                Color3 color = Color3::fromHsv({hue += 137.5_degf, 0.75f, 0.9f});
+                Color3 color = Color3(1.0f, 1.0f, 1.0f);
                 auto *o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 3.f, color);
                 o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
                 o->_rigidBody->syncPose();
@@ -87,6 +87,7 @@ void Server::tickEvent() {
     ++_frame;
     tickMovments();
     cleanWorld();
+    handleCollision();
     networkUpdate();
 
     // Simulation physique
@@ -96,6 +97,44 @@ void Server::tickEvent() {
     _timeline.nextFrame();
     redraw();
 }
+
+void Server::handleCollision() {
+    CollisionCallback callback;
+    callback.onCollision = [&](btRigidBody* a, btRigidBody* b) {
+        auto* gameObjA = static_cast<GameObject*>(a->getUserPointer());
+        auto* gameObjB = static_cast<GameObject*>(b->getUserPointer());
+        if (gameObjA->_mass == 0 || gameObjB->_mass == 0) {
+            return; // Static objects are ignored
+        }
+        if (gameObjA && gameObjB) {
+            switch(gameObjA->_owner) {
+                case 0:
+                    gameObjB->setColor(Color3::red());
+                    gameObjB->_owner = 0;
+                break;
+                case 1:
+                    gameObjB->setColor(Color3::green());
+                    gameObjB->_owner = 1;
+                break;
+                case 2:
+                    gameObjB->setColor(Color3::blue());
+                    gameObjB->_owner = 2;
+                break;
+                case 3:
+                    gameObjB->setColor(Color3::yellow());
+                    gameObjB->_owner = 3;
+                break;
+            }
+        }
+    };
+    for (auto& [id, obj] : _objects) {
+        if (obj->_mass == 0)
+            continue;
+        btRigidBody* body = obj->_rigidBody->_bRigidBody.get();
+        _pWorld->_bWorld->contactTest(body, callback);
+    }
+}
+
 
 void Server::cleanWorld() {
     _pWorld->cleanWorld();
@@ -114,6 +153,9 @@ void Server::cleanWorld() {
             if (object->_rigidBody->_bRigidBody->getWorldTransform().getOrigin().length() > 99.0f) {
                 if (_sceneTreeUI->_selectedObject == object) {
                     _sceneTreeUI->_selectedObject = nullptr;
+                }
+                if (object->_owner != -1) {
+                    _players[object->_owner]->_score++;
                 }
                 _destroyedObjects.push_back(new DestroyedObject{object->_id, _frame});
                 _linkingContext.Unregister(object);
@@ -236,11 +278,6 @@ void Server::handleReceive(const ENetEvent &event) {
             if (hasFlag(inputs, Input::MoveDown))     move += Vector3::yAxis(-moveSpeed * deltaTime);
             player->_rigidBody->translate(move);
             player->_rigidBody->syncPose();
-            //player->updateDataFromBullet();
-            //std::cout << "Translation :" << move.x() << " " << move.y() << " " << move.z() << std::endl;
-            //std::cout << " New Pos : " <<player->_location.x() << " " << player->_location.y()  << " " << player->_location.z() << std::endl;
-            std::bitset<8> bits(static_cast<uint8_t>(inputs));
-            std::cout << "Received inputs bitmask: " << bits << std::endl;
             break;
         }
         default: break;

@@ -13,6 +13,7 @@ public:
     uint8_t _playerID = 5;
     ENetPeer *_peer;
     uint64_t _currentFrame = 0;
+    uint16_t _score = 0;
 
     Player(ENetPeer *peer, Engine* app, Object3D *parent);
     Player(ENetPeer *peer, Engine* app, Object3D *parent, uint8_t id);

@@ -278,6 +278,9 @@ void Engine::pointerPressEvent(PointerEvent& event) {
     Vector3 translate = _cameraObject->absoluteTransformation().translation();
 
     GameObject* projectile = _pProjectileManager->Shoot(this, &_scene, translate, direction);
+    projectile->_rigidBody->_bRigidBody->setUserPointer(static_cast<void*>(projectile));
+    projectile->_owner = 0;
+    projectile->setColor(Color3(1.0f, 0.0f, 0.0f));
     projectile->setMass(1000);
     //projectile->_location = btVector3(translate);
     addObject(projectile);
