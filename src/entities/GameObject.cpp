@@ -39,6 +39,10 @@ void GameObject::serialize(std::ostream &ostr) const {
     // Serialize the object id
     ostr.write(reinterpret_cast<const char*>(&_id), sizeof(uint32_t));
 
+    // Serialize false (meaning the object has not been destroyed)
+    bool to_be_removed = false;
+    ostr.write(reinterpret_cast<const char*>(&to_be_removed), sizeof(bool));
+
     // Serialize the type of object (Cube, Sphere, ...)
     ostr.write(reinterpret_cast<const char*>(&_type), sizeof(ObjectType));
 
@@ -78,7 +82,10 @@ void GameObject::serialize(std::ostream &ostr) const {
 }
 
 void GameObject::unserialize(std::istream &istr) {
-    // La désérialisation de l'id se fait avant l'appel de cette méthode
+    // - La désérialisation de l'id se fait avant l'appel de cette méthode
+    // - le booléen de destruction aussi
+    // - le type aussi
+
     size_t length;
     istr.read(reinterpret_cast<char*>(&length), sizeof(size_t));
 

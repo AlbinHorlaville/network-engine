@@ -26,16 +26,18 @@ class Client : public Engine {
         uint8_t _id; // Send by the server, from 0 to 3.
         ENetHost* _client;
         ENetPeer* _peer;
-        Player* _players[4];
         ClientState _state = Not_logged_in;
         int connectTypeOption = 0;
 
+        std::array<Player*, 4> _players = { nullptr };
+        uint8_t _frame = 0;
 
     public:
         void tickEvent() override;
         void networkUpdate() override;
         void handleReceive(const ENetEvent &event);
         void handleDisconnect(const ENetEvent &event);
+        void sendSnapshotACK(ENetPeer *peer);
         void initENet6();
         void pointerPressEvent(PointerEvent& event) override;
         void keyPressEvent(KeyEvent& event) override;

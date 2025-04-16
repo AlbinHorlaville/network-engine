@@ -10,10 +10,12 @@
 
 class Player : public GameObject {
 public:
-    uint8_t _playerID = -1;
+    uint8_t _playerID = 5;
     ENetPeer *_peer;
+    uint64_t _currentFrame = 0;
 
-    Player(uint8_t id, ENetPeer *peer, Engine* app, Object3D *parent);
+    Player(ENetPeer *peer, Engine* app, Object3D *parent);
+    Player(ENetPeer *peer, Engine* app, Object3D *parent, uint8_t id);
     ~Player() = default;
 
     void updateBulletFromData() override;

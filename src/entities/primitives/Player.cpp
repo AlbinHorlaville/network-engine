@@ -4,7 +4,19 @@
 #include "entities/primitives/Player.h"
 
 
-Player::Player(const uint8_t id, ENetPeer *peer, Engine* app, Object3D *parent) :
+Player::Player(ENetPeer *peer, Engine* app, Object3D *parent) :
+    GameObject("Player " + std::to_string(5), 0), _collisionShape(btVector3(0.2f, 0.2f, 0.2f))
+{
+    _peer = peer;
+    _app = app;
+    _playerID = 5; // Not initialised for now
+    _scale = btVector3(0.2f, 0.2f, 0.2f);
+    _collisionShape = btBoxShape(_scale);
+    _type = CUBE;
+    _parent = parent;
+}
+
+Player::Player(ENetPeer *peer, Engine* app, Object3D *parent, const uint8_t id) :
     GameObject("Player " + std::to_string(id), 0), _collisionShape(btVector3(0.2f, 0.2f, 0.2f))
 {
     _peer = peer;
@@ -13,6 +25,7 @@ Player::Player(const uint8_t id, ENetPeer *peer, Engine* app, Object3D *parent) 
     _scale = btVector3(0.2f, 0.2f, 0.2f);
     _collisionShape = btBoxShape(_scale);
     _type = CUBE;
+    _parent = parent;
 
     // Change name if it already exists
     giveDefaultName();
@@ -21,11 +34,34 @@ Player::Player(const uint8_t id, ENetPeer *peer, Engine* app, Object3D *parent) 
     this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
 
     // Appearances
-    Color3 color = Color3(0.5, 0.5, 1);
-    new ColoredDrawable{
-        *(_rigidBody), _app->getBoxInstanceData(), color,
+    switch (id) {
+        case 0: _color = Color3::red(); break;
+        case 1: _color = Color3::green(); break;
+        case 2: _color = Color3::blue(); break;
+        case 3: _color = Color3::yellow(); break;
+        default : break;
+    }
+    _drawable = new ColoredDrawable{
+        *(_rigidBody), _app->getBoxInstanceData(), _color,
         Matrix4::scaling(Vector3{_scale}), _app->getDrawables()
     };
+
+    // Location
+    float x = 17 * pow(-1, id);
+    float y = 15;
+    float z = 17 * pow(-1, id + id / 2);
+    Vector3 position = Vector3(x, y, z);
+    _rigidBody->translate(position);
+
+    /*
+    // Rotation
+    Vector3 up = Vector3::xAxis();
+    Matrix4 lookAt = Matrix4::lookAt(position, Vector3{0.0f}, up);
+    Quaternion rotation = Quaternion::fromMatrix(lookAt.rotationScaling());
+    _rigidBody->rotate(rotation);
+    */
+
+    _rigidBody->syncPose();
 }
 
 void Player::setColor(const Color3 &color) {
@@ -51,14 +87,8 @@ void Player::updateBulletFromData() {
 
     _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
     _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
-    _rigidBody->rigidBody().setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
+    _rigidBody->rigidBody().setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT| btCollisionObject::CF_NO_CONTACT_RESPONSE);
     _rigidBody->rigidBody().setActivationState(DISABLE_DEACTIVATION);
-
-    _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
-    _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
-
-    // Appearance
-    setColor(_color);
 }
 
 
@@ -84,6 +114,18 @@ void Player::unserialize(std::istream &istr) {
     else if (_playerID != checkID) {
         std::cerr << "Player::unserialize(): invalid id. Current : " << _playerID << ", Serialized : " << checkID << std::endl;
     }
+
+    // Useless id for the player
+    uint32_t useless_id;
+    istr.read(reinterpret_cast<char*>(&useless_id), sizeof(uint32_t));
+
+    // booléen de destruction (ne sert à rien pour le player)
+    bool reader;
+    istr.read(reinterpret_cast<char*>(&reader), sizeof(bool));
+
+    // Type de l'objet (ne sert à rien non plus)
+    ObjectType type;
+    istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
 
     GameObject::unserialize(istr);
 

@@ -114,6 +114,11 @@ void Engine::drawImGUI() {
     // Render ImGui
     _sceneTreeUI->DrawSceneTree();
 
+    // Show FPS
+    ImGui::Begin("Performances", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Text("FPS : %f", fps_handler.get());
+    ImGui::End();
+
     // 🔹 Fenêtre d'inspection de l'objet sélectionné
     if (_sceneTreeUI->_selectedObject) {
         ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
@@ -184,27 +189,6 @@ void Engine::tickMovments() {
         _cameraRig->translateLocal(Vector3::yAxis(-moveSpeed * deltaTime));
 }
 
-void Engine::cleanWorld() {
-    _pWorld->cleanWorld();
-
-    // Remove object if their _rigidBody have been destroyed
-    for (auto it = _objects.begin(); it != _objects.end(); ) {
-        GameObject* object = it->second;
-        object->updateDataFromBullet();
-        if (object && object->_rigidBody && object->_rigidBody->_bRigidBody) {
-            if (object->_rigidBody->_bRigidBody->getWorldTransform().getOrigin().length() > 99.0f) {
-                if (_sceneTreeUI->_selectedObject == object) {
-                    _sceneTreeUI->_selectedObject = nullptr;
-                }
-                _linkingContext.Unregister(object);
-                it = _objects.erase(it);
-                continue;
-            }
-        }
-        ++it;
-    }
-}
-
 void Engine::drawGraphics() {
     if(_drawCubes) {
         /* Populate instance data with transformations and colors */
@@ -226,7 +210,6 @@ void Engine::drawGraphics() {
 
 void Engine::tickEvent() {
     tickMovments();
-    cleanWorld();
 
     // Simulation physique
     _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);

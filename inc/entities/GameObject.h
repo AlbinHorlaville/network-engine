@@ -47,7 +47,7 @@ public:
     btVector3 _location;
     btVector3 _linearVelocity;
     btVector3 _angularVelocity;
-    btQuaternion _rotation;
+    btQuaternion _rotation = btQuaternion(0, 0, 0, 1);
     float _mass;
     RigidBody* _rigidBody = nullptr;
     Color3 _color;
@@ -57,6 +57,7 @@ public:
     ~GameObject() {
         delete _rigidBody;
         _app = nullptr;
+        delete _drawable;
     }
 
     virtual void setMass(float mass) = 0;
