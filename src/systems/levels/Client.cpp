@@ -232,7 +232,16 @@ void Client::sendInputs() {
     oss.write(reinterpret_cast<const char*>(&_id), sizeof(uint8_t));
     oss.write(reinterpret_cast<const char*>(_inputs), sizeof(uint8_t));
     // TODO : Calculer le ping
-    // TODO : Gérer le shoot
+    // Vector2 position mouse
+    if (hasFlag(*_inputs, Input::Shoot)) {
+        oss.write(reinterpret_cast<const char*>(&_directionShoot.x()), sizeof(float));
+        oss.write(reinterpret_cast<const char*>(&_directionShoot.y()), sizeof(float));
+        oss.write(reinterpret_cast<const char*>(&_directionShoot.z()), sizeof(float));
+        oss.write(reinterpret_cast<const char*>(&_translateShoot.x()), sizeof(float));
+        oss.write(reinterpret_cast<const char*>(&_translateShoot.y()), sizeof(float));
+        oss.write(reinterpret_cast<const char*>(&_translateShoot.z()), sizeof(float));
+    }
+    *_inputs = Input::None;
 
     std::string data = oss.str();
     ENetPacket* packet = enet_packet_create(
@@ -246,7 +255,18 @@ void Client::sendInputs() {
 
 void Client::pointerPressEvent(PointerEvent &event) {
     if(_imgui.handlePointerPressEvent(event)) return;
+    *_inputs = *_inputs | Input::Shoot;
+    const Vector2 position = event.position()*Vector2{framebufferSize()}/Vector2{windowSize()};
+    const Vector2 clickPoint = Vector2::yScale(-1.0f)*(position/Vector2{framebufferSize()} - Vector2{0.5f})*_camera->projectionSize();
+    _directionShoot = btVector3((_cameraObject->absoluteTransformation().rotationScaling() * Vector3{clickPoint, -1.0f}).normalized());
+    _translateShoot = _cameraObject->absoluteTransformation().translation();
 }
+
+void Client::pointerReleaseEvent(PointerEvent &event) {
+    if (_imgui.handlePointerReleaseEvent(event)) return;
+    *_inputs = *_inputs & ~Input::Shoot;
+}
+
 
 void Client::keyPressEvent(KeyEvent &event) {
     if (_imgui.handleKeyPressEvent(event)) return;

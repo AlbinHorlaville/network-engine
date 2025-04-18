@@ -32,6 +32,8 @@ class Client : public Engine {
 
         uint8_t _frame = 0;
         Input* _inputs = nullptr;
+        btVector3 _directionShoot;
+        Vector3 _translateShoot;
 
     public:
         void tickEvent() override;
@@ -42,6 +44,7 @@ class Client : public Engine {
         void sendInputs();
         void initENet6();
         void pointerPressEvent(PointerEvent& event) override;
+        void pointerReleaseEvent(PointerEvent& event) override;
         void keyPressEvent(KeyEvent& event) override;
         void keyReleaseEvent(KeyEvent& event) override;
         void textInputEvent(TextInputEvent& event) override;

@@ -103,28 +103,29 @@ void Server::handleCollision() {
     callback.onCollision = [&](btRigidBody* a, btRigidBody* b) {
         auto* gameObjA = static_cast<GameObject*>(a->getUserPointer());
         auto* gameObjB = static_cast<GameObject*>(b->getUserPointer());
+        if (auto* sphere = dynamic_cast<Sphere*>(gameObjB); sphere != nullptr) {
+            return;
+        }
         if (gameObjA->_mass == 0 || gameObjB->_mass == 0) {
             return; // Static objects are ignored
         }
-        if (gameObjA && gameObjB) {
-            switch(gameObjA->_owner) {
-                case 0:
-                    gameObjB->setColor(Color3::red());
-                    gameObjB->_owner = 0;
-                break;
-                case 1:
-                    gameObjB->setColor(Color3::green());
-                    gameObjB->_owner = 1;
-                break;
-                case 2:
-                    gameObjB->setColor(Color3::blue());
-                    gameObjB->_owner = 2;
-                break;
-                case 3:
-                    gameObjB->setColor(Color3::yellow());
-                    gameObjB->_owner = 3;
-                break;
-            }
+        switch(gameObjA->_owner) {
+            case 0:
+                gameObjB->setColor(Color3::red());
+                gameObjB->_owner = 0;
+            break;
+            case 1:
+                gameObjB->setColor(Color3::green());
+                gameObjB->_owner = 1;
+            break;
+            case 2:
+                gameObjB->setColor(Color3::blue());
+                gameObjB->_owner = 2;
+            break;
+            case 3:
+                gameObjB->setColor(Color3::yellow());
+                gameObjB->_owner = 3;
+            break;
         }
     };
     for (auto& [id, obj] : _objects) {
@@ -154,8 +155,8 @@ void Server::cleanWorld() {
                 if (_sceneTreeUI->_selectedObject == object) {
                     _sceneTreeUI->_selectedObject = nullptr;
                 }
-                if (object->_owner != -1) {
-                    _players[object->_owner]->_score++;
+                if (Cube* cube = dynamic_cast<Cube*>(object); cube != nullptr && cube->_owner != -1) {
+                    _players[cube->_owner]->_score++;
                 }
                 _destroyedObjects.push_back(new DestroyedObject{object->_id, _frame});
                 _linkingContext.Unregister(object);
@@ -265,7 +266,9 @@ void Server::handleReceive(const ENetEvent &event) {
             iss.read(reinterpret_cast<char*>(&id_client), sizeof(uint8_t));
             Input inputs = Input::None;
             iss.read(reinterpret_cast<char*>(&inputs), sizeof(uint8_t));
-
+            if (inputs == Input::None) {
+                break;
+            }
             const float moveSpeed = 10.f;
             const float deltaTime = _timeline.previousFrameDuration();
             Vector3 move;
@@ -278,6 +281,31 @@ void Server::handleReceive(const ENetEvent &event) {
             if (hasFlag(inputs, Input::MoveDown))     move += Vector3::yAxis(-moveSpeed * deltaTime);
             player->_rigidBody->translate(move);
             player->_rigidBody->syncPose();
+            if (hasFlag(inputs, Input::Shoot)) {
+                float x, y, z;
+                iss.read(reinterpret_cast<char*>(&x), sizeof(float));
+                iss.read(reinterpret_cast<char*>(&y), sizeof(float));
+                iss.read(reinterpret_cast<char*>(&z), sizeof(float));
+                btVector3 direction(x, y, z);
+                iss.read(reinterpret_cast<char*>(&x), sizeof(float));
+                iss.read(reinterpret_cast<char*>(&y), sizeof(float));
+                iss.read(reinterpret_cast<char*>(&z), sizeof(float));
+                Vector3 location(x, y, z);
+                GameObject* projectile = _pProjectileManager->Shoot(this, &_scene, location, direction);
+                projectile->_rigidBody->_bRigidBody->setUserPointer(projectile);
+                projectile->_owner = id_client;
+                Color3 color;
+                switch (id_client) {
+                    case 0: color = Color3::red(); break;
+                    case 1: color = Color3::green(); break;
+                    case 2: color = Color3::blue(); break;
+                    case 3: color = Color3::yellow(); break;
+                    default : break;
+                }
+                projectile->setColor(color);
+                projectile->setMass(1000);
+                addObject(projectile);
+            }
             break;
         }
         default: break;
