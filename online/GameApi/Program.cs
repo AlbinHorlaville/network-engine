@@ -45,6 +45,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<StatsService>();
 builder.Services.AddScoped<AchievementService>();
 builder.Services.AddScoped<MatchmakingService>();
+builder.Services.AddHostedService<MatchMakingWorker>();
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -75,6 +76,22 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Create server user in Redis if it doesn't exist
+using (var scope = app.Services.CreateScope())
+{
+    var redis = scope.ServiceProvider.GetRequiredService<IConnectionMultiplexer>();
+    var db = redis.GetDatabase();
+
+    const string serverUsername = "Server";
+    const string serverPassword = "SecuredPassword"; // Change this to something strong and secure
+
+    if (!await db.HashExistsAsync("users", serverUsername))
+    {
+        await db.HashSetAsync("users", serverUsername, serverPassword);
+        Console.WriteLine("Server user created in Redis.");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

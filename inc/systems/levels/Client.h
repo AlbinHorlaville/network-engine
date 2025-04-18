@@ -8,13 +8,14 @@
 #include "enet6/enet.h"
 #include "entities/primitives/Player.h"
 #include "Engine.h"
+#include "systems/online/HttpClient.h"
 
 enum ClientState {
-    Not_logged_in,
-    Logged_in,
-    In_queue,
-    Found_match,
-    In_game,
+    WelcomeScreen,
+    Lobby,
+    Queue,
+    FoundMatch,
+    InGame,
 };
 
 class Client : public Engine {
@@ -26,11 +27,13 @@ class Client : public Engine {
         uint8_t _id; // Send by the server, from 0 to 3.
         ENetHost* _client;
         ENetPeer* _peer;
-        ClientState _state = Not_logged_in;
+        ClientState _state = WelcomeScreen;
         int connectTypeOption = 0;
-
+        HttpClient _httpClient;
+        std::string _currentServerIp;
         std::array<Player*, 4> _players = { nullptr };
         uint8_t _frame = 0;
+        bool _loginProblem = false;
 
     public:
         void tickEvent() override;
@@ -46,7 +49,10 @@ class Client : public Engine {
         void drawEvent() override;
         void serialize(std::ostream &ostr) const override;
         void unserialize(std::istream &istr) override;
+        void endFrame();
         void drawLoginWindow();
+        void drawLobbyWindow();
+        void drawQueueWindow();
 };
 
 

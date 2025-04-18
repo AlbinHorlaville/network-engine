@@ -50,7 +50,7 @@ namespace GameApi.Controllers
             var token = new JwtSecurityToken(
                 claims: new[] { new Claim(ClaimTypes.Name, username) },
                 expires: DateTime.UtcNow.AddHours(1),
-                signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
+                signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512)
             );
             return tokenHandler.WriteToken(token);
         }

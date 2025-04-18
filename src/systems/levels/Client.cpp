@@ -12,6 +12,7 @@
 #include <Magnum/ImGuiIntegration/Context.hpp>
 
 Client::Client(const Arguments &arguments): Engine(arguments) {
+    _httpClient = HttpClient();
     setSwapInterval(1); // optional vsync
     redraw();
     _cameraObject = new Object3D{&_scene};
@@ -22,6 +23,7 @@ Client::Client(const Arguments &arguments): Engine(arguments) {
 }
 
 Client::~Client() {
+    _httpClient.unqueuePlayer();
     Engine::~Engine();
     enet_peer_reset(_peer);
     enet_host_destroy(_client);
@@ -40,8 +42,19 @@ void Client::initENet6() {
     }
 
     ENetAddress address;
-    enet_address_set_host(&address, ENET_ADDRESS_TYPE_IPV6, "::1"); // Adresse du serveur
-    address.port = 5555;
+    std::string ip;
+    uint16_t port = 5555; // default value
+
+    // Simple parse (assuming format is always "ip:port")
+    auto colonPos = _currentServerIp.find(':');
+    if (colonPos != std::string::npos) {
+        ip = _currentServerIp.substr(0, colonPos);
+        port = static_cast<uint16_t>(std::stoi(_currentServerIp.substr(colonPos + 1)));
+    }
+
+    // Set address
+    enet_address_set_host(&address, ENET_ADDRESS_TYPE_IPV6, ip.c_str());
+    address.port = port;
 
     _peer = enet_host_connect(_client, &address, 2, 0);
     if (_peer == nullptr) {
@@ -64,7 +77,7 @@ void Client::tickEvent() {
     glfwPollEvents();
 
     switch(_state) {
-        case (Logged_in) :
+        case (InGame) :
             networkUpdate();
             tickMovments();
 
@@ -73,6 +86,15 @@ void Client::tickEvent() {
 
             // Avance la timeline et redessine
             _timeline.nextFrame();
+        break;
+        case (Queue) :
+            _currentServerIp = _httpClient.getMatchStatus();
+            if(!_currentServerIp.empty()) {
+                initSimulation();
+                // RX initialisation
+                initENet6();
+                _state = InGame;
+            }
         break;
         default:
             break;
@@ -133,28 +155,25 @@ void Client::drawEvent() {
     GL::defaultFramebuffer.clear(GL::FramebufferClear::Color | GL::FramebufferClear::Depth);
 
     switch(_state) {
-        case (Logged_in):
+        case (InGame):
             drawGraphics();
             drawImGUI();
             fps_handler.update();
         break;
-        case (Not_logged_in) :
+        case (WelcomeScreen) :
             _imgui.newFrame();
-
             drawLoginWindow();
-
-            // Setup rendering
-            GL::Renderer::enable(GL::Renderer::Feature::Blending);
-            GL::Renderer::enable(GL::Renderer::Feature::ScissorTest);
-            GL::Renderer::disable(GL::Renderer::Feature::FaceCulling);
-            GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
-
-            _imgui.drawFrame();  // End ImGui frame (only once!)
-
-            GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
-            GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
-            GL::Renderer::disable(GL::Renderer::Feature::ScissorTest);
-            GL::Renderer::disable(GL::Renderer::Feature::Blending);
+            endFrame();
+        break;
+        case (Queue) :
+            _imgui.newFrame();
+            drawQueueWindow();
+            endFrame();
+        break;
+        case (Lobby) :
+            _imgui.newFrame();
+            drawLobbyWindow();
+            endFrame();
         break;
         default:
             break;
@@ -162,7 +181,47 @@ void Client::drawEvent() {
 
     swapBuffers();
     redraw();
-};
+}
+
+void Client::drawQueueWindow() {
+    ImVec2 windowSize = ImGui::GetMainViewport()->Size;
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always, ImVec2(0.0f, 0.0f)); // Place window in top-left corner
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y)); // Set a dynamic size corresponding to parent window size
+
+    if (ImGui::Begin("Queue", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+
+        ImGui::Text("Waiting for players and server...");
+
+        if (ImGui::Button("Leave Queue")) {
+            if(_httpClient.unqueuePlayer()) {
+                _state = Lobby;
+            } else {
+                std::cerr << "Failed to leave queue." << std::endl;
+            }
+        }
+
+        ImGui::End();
+    }
+}
+
+void Client::drawLobbyWindow() {
+    ImVec2 windowSize = ImGui::GetMainViewport()->Size;
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always, ImVec2(0.0f, 0.0f)); // Place window in top-left corner
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y)); // Set a dynamic size corresponding to parent window size
+
+    if (ImGui::Begin("Lobby", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+
+        if (ImGui::Button("Queue")) {
+            if(_httpClient.queuePlayer()) _state = Queue;
+        }
+
+        if (ImGui::Button("Disconnect")) {
+            _state = WelcomeScreen;
+        }
+
+        ImGui::End();
+    }
+}
 
 void Client::drawLoginWindow() {
     ImVec2 windowSize = ImGui::GetMainViewport()->Size;
@@ -173,8 +232,17 @@ void Client::drawLoginWindow() {
         static char usernameLogin[64] = "";
         static char passwordLogin[64] = "";
 
-        if (ImGui::RadioButton("Login", connectTypeOption == 0)) connectTypeOption = 0;
-        if (ImGui::RadioButton("Register", connectTypeOption == 1)) connectTypeOption = 1;
+        if (ImGui::RadioButton("Login", connectTypeOption == 0))
+        {
+            connectTypeOption = 0;
+            _loginProblem = false;
+        }
+
+        if (ImGui::RadioButton("Register", connectTypeOption == 1))
+        {
+            connectTypeOption = 1;
+            _loginProblem = false;
+        }
 
         if (ImGui::InputText("Username", usernameLogin, IM_ARRAYSIZE(usernameLogin), ImGuiInputTextFlags_None)) {
             // You can add additional logic here for handling username input
@@ -186,17 +254,33 @@ void Client::drawLoginWindow() {
         if (ImGui::Button("Connect")) {
             if (connectTypeOption == 0) //Login mode
             {
-                initSimulation();
-                // RX initialisation
-                initENet6();
-                _state = Logged_in;
+                if (_httpClient.login(usernameLogin, passwordLogin)) {
+                    _state = Lobby;
+                    std::memset(usernameLogin, 0, sizeof(usernameLogin));
+                    std::memset(passwordLogin, 0, sizeof(passwordLogin));
+                    _loginProblem = false;
+                } else {
+                    _loginProblem = true;
+                }
             }
             else //Register mode
             {
-                initSimulation();
-                // RX initialisation
-                initENet6();
-                _state = Logged_in;
+                if (_httpClient.registerUser(usernameLogin, passwordLogin)) {
+                    _state = Lobby;
+                    std::memset(usernameLogin, 0, sizeof(usernameLogin));
+                    std::memset(passwordLogin, 0, sizeof(passwordLogin));
+                    _loginProblem = false;
+                } else {
+                    _loginProblem = true;
+                }
+            }
+        }
+
+        if (_loginProblem) {
+            if (connectTypeOption == 0) {
+                ImGui::Text("Username or password is incorrect.");
+            } else {
+                ImGui::Text("Username is already taken.");
             }
         }
 
@@ -236,7 +320,6 @@ void Client::keyReleaseEvent(KeyEvent& event) {
 }
 
 void Client::textInputEvent(TextInputEvent& event) {
-    std::cout << "Text input event: " << std::endl;
     if (_imgui.handleTextInputEvent(event)) return;
 }
 
@@ -335,3 +418,19 @@ void Client::unserialize(std::istream &istr) {
         }
     }
 }
+
+void Client::endFrame() {
+    // Setup rendering
+    GL::Renderer::enable(GL::Renderer::Feature::Blending);
+    GL::Renderer::enable(GL::Renderer::Feature::ScissorTest);
+    GL::Renderer::disable(GL::Renderer::Feature::FaceCulling);
+    GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
+
+    _imgui.drawFrame();  // End ImGui frame (only once!)
+
+    GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
+    GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
+    GL::Renderer::disable(GL::Renderer::Feature::ScissorTest);
+    GL::Renderer::disable(GL::Renderer::Feature::Blending);
+}
+
