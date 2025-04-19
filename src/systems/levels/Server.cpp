@@ -9,6 +9,7 @@
 #include <Magnum/ImGuiIntegration/Context.hpp>
 #include "systems/levels/Server.h"
 
+#include <Magnum/GL/DefaultFramebuffer.h>
 #include <sys/stat.h>
 #include <systems/network/PackageType.h>
 
@@ -30,14 +31,13 @@ Server::Server(const Arguments &arguments): Engine(arguments) {
         .setViewport(GL::defaultFramebuffer.viewport().size());
 
     /* Create the ground */
-    auto *ground = new Cube(this, "Floor", &_scene, {5.0f, 0.5f, 5.0f}, 0.f, 0xffffff_rgbf);
+    auto *ground = new Cube(this, "Floor", &_scene, {10.0f, 0.5f, 10.0f}, 0.f, 0xffffff_rgbf);
     addObject(ground);
 
     /* Create boxes with random colors */
-    Deg hue = 42.0_degf;
-    for (Int i = 0; i != 3; ++i) {
-        for (Int j = 0; j != 3; ++j) {
-            for (Int k = 0; k != 3; ++k) {
+    for (Int i = 0; i != 7; ++i) {
+        for (Int j = 0; j != 7; ++j) {
+            for (Int k = 0; k != 7; ++k) {
                 Color3 color = Color3(1.0f, 1.0f, 1.0f);
                 auto *o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 3.f, color);
                 o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
@@ -85,7 +85,6 @@ void Server::initENet6() {
 
 void Server::tickEvent() {
     ++_frame;
-    tickMovments();
     cleanWorld();
     handleCollision();
     networkUpdate();
@@ -155,7 +154,7 @@ void Server::cleanWorld() {
                 if (_sceneTreeUI->_selectedObject == object) {
                     _sceneTreeUI->_selectedObject = nullptr;
                 }
-                if (Cube* cube = dynamic_cast<Cube*>(object); cube != nullptr && cube->_owner != -1) {
+                if (Cube* cube = dynamic_cast<Cube*>(object); cube != nullptr && cube->_owner != 5) {
                     _players[cube->_owner]->_score++;
                 }
                 _destroyedObjects.push_back(new DestroyedObject{object->_id, _frame});
@@ -264,6 +263,27 @@ void Server::handleReceive(const ENetEvent &event) {
         case MSG_INPUTS: {
             uint8_t id_client;
             iss.read(reinterpret_cast<char*>(&id_client), sizeof(uint8_t));
+
+            uint16_t fps;
+            iss.read(reinterpret_cast<char*>(&fps), sizeof(uint16_t));
+            _players[id_client]->_fps = fps;
+            uint8_t ping;
+            iss.read(reinterpret_cast<char*>(&ping), sizeof(uint8_t));
+            _players[id_client]->_ping = ping;
+
+            std::uint64_t clientTimestamp;
+            iss.read(reinterpret_cast<char*>(&clientTimestamp), sizeof(uint64_t));
+
+            // Send Input ACK
+            std::ostringstream oss(std::ios::binary);
+            PackageType flag = MSG_INPUTS_ACK;
+            oss.write(reinterpret_cast<const char*>(&flag), sizeof(flag));
+            oss.write(reinterpret_cast<const char*>(&clientTimestamp), sizeof(uint64_t));
+            std::string data = oss.str();
+            ENetPacket* packet = enet_packet_create(data.data(), data.size(), ENET_PACKET_FLAG_RELIABLE);
+            enet_peer_send(_players[id_client]->_peer, 0, packet);
+
+            // Handle Inputs
             Input inputs = Input::None;
             iss.read(reinterpret_cast<char*>(&inputs), sizeof(uint8_t));
             if (inputs == Input::None) {
@@ -373,54 +393,4 @@ void Server::serialize(std::ostream &ostr) const {
     }
 }
 
-void Server::unserialize(std::istream &istr) {
-    /*
-    // Unserialize frame number
-    istr.read(reinterpret_cast<char*>(&_frame), sizeof(uint64_t));
-
-    // Players
-    for (int i = 0; i < 4; i++) {
-        if (_players[i] == nullptr) {
-            _players[i] = new Player(5, nullptr, this, &_scene);
-        }
-        _players[i]->unserialize(istr);
-    }
-
-    // Objets
-    uint16_t size_objects;
-    istr.read(reinterpret_cast<char*>(&size_objects), sizeof(uint16_t));
-    for (uint16_t i = 0; i < size_objects; i++) {
-        // Désérialiser l'ID d'objet.
-        uint32_t id;
-        istr.read(reinterpret_cast<char*>(&id), sizeof(uint32_t));
-
-        GameObject* obj = _linkingContext.GetLocalObject(id);
-        if (obj) { // L'objet est trouvé
-            ObjectType type;
-            istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
-            obj->unserialize(istr);
-            obj->updateBulletFromData();
-        }
-        else { // L'objet doit être créé
-            ObjectType type;
-            istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
-            switch(type) {
-                case CUBE: {
-                    auto cube = new Cube(this, &_scene);
-                    cube->unserialize(istr);
-                    cube->updateBulletFromData();
-                    addObject(cube);
-                    break;
-                }
-                case SPHERE: {
-                    auto* sphere = new Sphere(this, &_scene);
-                    sphere->unserialize(istr);
-                    sphere->updateBulletFromData();
-                    addObject(sphere);
-                    break;
-                }
-            }
-        }
-    }
-    */
-}
+void Server::unserialize(std::istream&) {}

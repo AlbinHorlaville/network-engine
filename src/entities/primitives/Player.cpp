@@ -96,6 +96,8 @@ void Player::serialize(std::ostream &ostr) const {
     // id
     ostr.write(reinterpret_cast<const char*>(&_playerID), sizeof(uint8_t)); // Gérer quand on déserialise, faut trouver le bon player
     ostr.write(reinterpret_cast<const char*>(&_score), sizeof(uint16_t));
+    ostr.write(reinterpret_cast<const char*>(&_fps), sizeof(uint16_t));
+    ostr.write(reinterpret_cast<const char*>(&_ping), sizeof(uint8_t));
     GameObject::serialize(ostr);
 
     // Serialize Scale
@@ -116,6 +118,8 @@ void Player::unserialize(std::istream &istr) {
     }
 
     istr.read(reinterpret_cast<char*>(&_score), sizeof(uint16_t));
+    istr.read(reinterpret_cast<char*>(&_fps), sizeof(uint16_t));
+    istr.read(reinterpret_cast<char*>(&_ping), sizeof(uint8_t));
 
     // Useless id for the player
     uint32_t useless_id;

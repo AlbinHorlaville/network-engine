@@ -9,7 +9,8 @@ enum PackageType : uint8_t {
     MSG_ASSIGN_ID = 0,
     MSG_WORLD_SYNC = 1,
     MSG_WORLD_ACK = 2,
-    MSG_INPUTS = 3
+    MSG_INPUTS = 3,
+    MSG_INPUTS_ACK = 4
 };
 
 enum class Input : uint8_t {

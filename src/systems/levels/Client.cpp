@@ -9,6 +9,7 @@
 #include "systems/network/PackageType.h"
 #include <entities/primitives/Sphere.h>
 #include <imgui.h>
+#include <Magnum/GL/DefaultFramebuffer.h>
 #include <Magnum/ImGuiIntegration/Context.hpp>
 
 Client::Client(const Arguments &arguments): Engine(arguments) {
@@ -20,6 +21,7 @@ Client::Client(const Arguments &arguments): Engine(arguments) {
     .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 99.0f))
     .setViewport(GL::defaultFramebuffer.viewport().size());
     _inputs = new Input(Input::None);
+    _pingHandler.init();
 }
 
 Client::~Client() {
@@ -67,7 +69,6 @@ void Client::tickEvent() {
     switch(_state) {
         case (Logged_in) :
             networkUpdate();
-            tickMovments();
             sendInputs();
             // Simulation physique
             _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
@@ -121,11 +122,21 @@ void Client::handleReceive(const ENetEvent &event) {
             sendSnapshotACK(event.peer);
             break;
         }
+        case MSG_INPUTS_ACK: {
+            uint64_t sentTime;
+            iss.read(reinterpret_cast<char*>(&sentTime), sizeof(sentTime));
+
+            uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count();
+            std::cout << now - sentTime << std::endl;
+            _pingHandler.update(sentTime, now);
+            break;
+        }
         default: break;
     }
 }
 
-void Client::handleDisconnect(const ENetEvent &event) {
+void Client::handleDisconnect(const ENetEvent&) {
     std::cout << "Disconnected from the server." << std::endl;
 }
 
@@ -224,14 +235,24 @@ void Client::sendSnapshotACK(ENetPeer *peer) {
 }
 
 void Client::sendInputs() {
+    if (_id > 3) {
+        return;
+    }
     std::ostringstream oss(std::ios::binary);
 
     // Mettre le flag
     PackageType flag = MSG_INPUTS;
     oss.write(reinterpret_cast<const char*>(&flag), sizeof(PackageType));
     oss.write(reinterpret_cast<const char*>(&_id), sizeof(uint8_t));
+    const uint16_t fps = fps_handler.get();
+    oss.write(reinterpret_cast<const char*>(&fps), sizeof(uint16_t));
+    uint8_t ping = _pingHandler.get();
+    oss.write(reinterpret_cast<const char*>(&ping), sizeof(uint8_t));
+    // Stocke le temps courant (en micro ou millisecondes)
+    uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    oss.write(reinterpret_cast<const char*>(&now), sizeof(uint64_t));
     oss.write(reinterpret_cast<const char*>(_inputs), sizeof(uint8_t));
-    // TODO : Calculer le ping
+
     // Vector2 position mouse
     if (hasFlag(*_inputs, Input::Shoot)) {
         oss.write(reinterpret_cast<const char*>(&_directionShoot.x()), sizeof(float));
@@ -299,25 +320,7 @@ void Client::textInputEvent(TextInputEvent& event) {
     if (_imgui.handleTextInputEvent(event)) return;
 }
 
-void Client::serialize(std::ostream &ostr) const {
-    /*
-    // Serialize frame number
-    ostr.write(reinterpret_cast<const char*>(&_frame), sizeof(uint64_t));
-
-    // Sérialiser les players
-    for (int i = 0; i < 4; i++) {
-        if (_players[i]) {
-            _players[i]->serialize(ostr);
-        }
-    }
-    // On sérialise le nombre d'objet que l'on sérialise
-    uint16_t size_objects = _objects.size();
-    ostr.write(reinterpret_cast<const char*>(&size_objects), sizeof(uint16_t));
-    for (auto pair : _objects) {
-        pair.second->serialize(ostr);
-    }
-    */
-}
+void Client::serialize(std::ostream&) const {}
 
 void Client::unserialize(std::istream &istr) {
     // Unserialize frame number

@@ -58,7 +58,7 @@ void Cube::setScale(btVector3 newScale) {
     _rigidBody->rigidBody().setCollisionShape(&_collisionShape);
 
     // Recalculer l'inertie si le corps est dynamique
-    btScalar mass = _rigidBody->rigidBody().getInvMass() == 0 ? 0 : 1.0 / _rigidBody->rigidBody().getInvMass();
+    const btScalar mass = _rigidBody->rigidBody().getInvMass() == 0 ? 0 : static_cast<btScalar>(1.0) / _rigidBody->rigidBody().getInvMass();
     btVector3 inertia(0, 0, 0);
     if (mass > 0.f) {
         _collisionShape.calculateLocalInertia(mass, inertia);

@@ -9,6 +9,7 @@
 #include "entities/primitives/Player.h"
 #include "Engine.h"
 #include "systems/network/PackageType.h"
+#include "systems/network/PingHandler.h"
 
 enum ClientState {
     Not_logged_in,
@@ -24,13 +25,13 @@ class Client : public Engine {
         ~Client();
 
     private:
-        uint8_t _id; // Send by the server, from 0 to 3.
+        uint8_t _id = 5; // Send by the server, from 0 to 3.
         ENetHost* _client;
         ENetPeer* _peer;
         ClientState _state = Not_logged_in;
         int connectTypeOption = 0;
-
-        uint8_t _frame = 0;
+        PingHandler _pingHandler;
+        uint64_t _frame = 0;
         Input* _inputs = nullptr;
         btVector3 _directionShoot;
         Vector3 _translateShoot;
