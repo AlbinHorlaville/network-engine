@@ -18,7 +18,7 @@ struct DestroyedObject {
 struct CollisionCallback : public btCollisionWorld::ContactResultCallback {
     std::function<void(btRigidBody*, btRigidBody*)> onCollision;
 
-    btScalar addSingleResult(btManifoldPoint& cp,
+    btScalar addSingleResult(btManifoldPoint&,
                              const btCollisionObjectWrapper* colObj0Wrap, int, int,
                              const btCollisionObjectWrapper* colObj1Wrap, int, int) override {
         auto* rbA = const_cast<btRigidBody*>(btRigidBody::upcast(colObj0Wrap->getCollisionObject()));

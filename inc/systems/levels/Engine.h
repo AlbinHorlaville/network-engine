@@ -35,6 +35,7 @@
 #include <systems/network/Serializable.h>
 #include "systems/network/LinkingContext.h"
 #include "Magnum/ImGuiIntegration/Context.h"
+#include "systems/network/FPSHandler.h"
 
 class GameObject;
 class PhysicsWorld;
@@ -51,36 +52,6 @@ struct InstanceData {
     Matrix4 transformationMatrix;
     Matrix3x3 normalMatrix;
     Color3 color;
-};
-
-struct FPSHandler {
-    private:
-        std::chrono::steady_clock::time_point _lastFrameTime;
-        int _frameCount = 0;
-        float _accumulatedTime = 0.0f;
-        float _fps = 0.0f;
-    public:
-        void init() {
-            _lastFrameTime = std::chrono::steady_clock::now();
-        }
-
-        void update() {
-            auto now = std::chrono::steady_clock::now();
-            float deltaTime = std::chrono::duration<float>(now - _lastFrameTime).count();
-            _lastFrameTime = now;
-
-            _accumulatedTime += deltaTime;
-            _frameCount++;
-
-            if (_accumulatedTime >= 1.0f) {
-                _fps = _frameCount / _accumulatedTime;
-                _frameCount = 0;
-                _accumulatedTime = 0.0f;
-            }
-        }
-        float get() const {
-            return _fps;
-        }
 };
 
 struct DeltaTimer {
@@ -111,7 +82,6 @@ class Engine: public Platform::Application, public Serializable {
     void drawImGUI();
     void drawGraphics();
     void drawEvent() override;
-    void tickMovments();
     void tickEvent() override;
     void keyPressEvent(KeyEvent& event) override;
     void keyReleaseEvent(KeyEvent& event) override;
@@ -146,14 +116,12 @@ class Engine: public Platform::Application, public Serializable {
 
     bool _drawCubes{true};
 
-    std::map<std::string, GameObject*> _objects;
-
-    std::unordered_set<Key> _pressedKeys;
+    std::unordered_map<std::string, GameObject*> _objects;
 
     SceneTree* _sceneTreeUI;
     LinkingContext _linkingContext;
 
-    std::map<std::string, GameObject *> const& getObjects() const {
+    std::unordered_map<std::string, GameObject *> const& getObjects() const {
         return _objects;
     }
     Containers::Array<InstanceData>& getBoxInstanceData() {
