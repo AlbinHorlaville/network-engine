@@ -7,12 +7,16 @@
       "RelativeMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|solutionrelative:services\\matchmakingworker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|c:\\users\\orgor\\onedrive\\documents\\uqac\\rzo\\network-engine\\online\\gameapi\\services\\matchmakingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|solutionrelative:services\\matchmakingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|c:\\users\\orgor\\onedrive\\documents\\uqac\\rzo\\network-engine\\online\\gameapi\\controllers\\matchmakingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|solutionrelative:controllers\\matchmakingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|c:\\users\\orgor\\onedrive\\documents\\uqac\\rzo\\network-engine\\online\\gameapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|c:\\users\\orgor\\onedrive\\documents\\uqac\\rzo\\network-engine\\online\\gameapi\\services\\matchmakingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|solutionrelative:services\\matchmakingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|c:\\users\\orgor\\onedrive\\documents\\uqac\\rzo\\network-engine\\online\\gameapi\\controllers\\achievementscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -29,10 +33,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|c:\\users\\orgor\\onedrive\\documents\\uqac\\rzo\\network-engine\\online\\gameapi\\services\\statsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|solutionrelative:services\\statsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|c:\\users\\orgor\\onedrive\\documents\\uqac\\rzo\\network-engine\\online\\gameapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7472D6A1-8371-41DE-9325-D594D173DF93}|GameApi.csproj|c:\\users\\orgor\\onedrive\\documents\\uqac\\rzo\\network-engine\\online\\gameapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
@@ -74,7 +74,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "MatchMakingService.cs",
               "DocumentMoniker": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\Services\\MatchMakingService.cs",
               "RelativeDocumentMoniker": "Services\\MatchMakingService.cs",
@@ -87,20 +87,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "MatchMakingController.cs",
               "DocumentMoniker": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\Controllers\\MatchMakingController.cs",
               "RelativeDocumentMoniker": "Controllers\\MatchMakingController.cs",
               "ToolTip": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\Controllers\\MatchMakingController.cs",
               "RelativeToolTip": "Controllers\\MatchMakingController.cs",
-              "ViewState": "AgIAAC8AAAAAAAAAAAAgwD0AAAAbAAAAAAAAAA==",
+              "ViewState": "AgIAADUAAAAAAAAAAAAgwDsAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-07T20:19:05.132Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "AchievementsController.cs",
               "DocumentMoniker": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\Controllers\\AchievementsController.cs",
               "RelativeDocumentMoniker": "Controllers\\AchievementsController.cs",
@@ -108,18 +108,17 @@
               "RelativeToolTip": "Controllers\\AchievementsController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-07T20:17:18.441Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-07T20:17:18.441Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 2,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
               "ToolTip": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\Program.cs",
               "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAAEkAAAAAAAAAAAAIwGEAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAC0AAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-07T20:02:16.721Z",
               "EditorCaption": ""
@@ -132,14 +131,14 @@
               "RelativeDocumentMoniker": "Services\\MatchMakingWorker.cs",
               "ToolTip": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\Services\\MatchMakingWorker.cs",
               "RelativeToolTip": "Services\\MatchMakingWorker.cs",
-              "ViewState": "AgIAAA0AAAAAAAAAAAAQwDMAAABOAAAAAAAAAA==",
+              "ViewState": "AgIAAC0AAAAAAAAAAAAYwD0AAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-18T14:01:36.187Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "AuthService.cs",
               "DocumentMoniker": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\Services\\AuthService.cs",
               "RelativeDocumentMoniker": "Services\\AuthService.cs",
@@ -147,8 +146,7 @@
               "RelativeToolTip": "Services\\AuthService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-08T16:29:15.207Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-08T16:29:15.207Z"
             },
             {
               "$type": "Document",
@@ -164,7 +162,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "AuthController.cs",
               "DocumentMoniker": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\Controllers\\AuthController.cs",
               "RelativeDocumentMoniker": "Controllers\\AuthController.cs",
@@ -172,12 +170,11 @@
               "RelativeToolTip": "Controllers\\AuthController.cs",
               "ViewState": "AgIAAAYAAAAAAAAAAAAAABcAAAAeAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-07T20:12:04.661Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-07T20:12:04.661Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "StatsService.cs",
               "DocumentMoniker": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\Services\\StatsService.cs",
               "RelativeDocumentMoniker": "Services\\StatsService.cs",
@@ -185,8 +182,7 @@
               "RelativeToolTip": "Services\\StatsService.cs",
               "ViewState": "AgIAAA0AAAAAAAAAAAA5wAkAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-08T16:27:55.435Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-08T16:27:55.435Z"
             },
             {
               "$type": "Document",

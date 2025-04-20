@@ -62,6 +62,19 @@ bool HttpClient::unqueuePlayer() {
 std::string HttpClient::getMatchStatus() {
     Headers headers = authorizedHeader();  // if token is needed
     std::string response = get("/Matchmaking/status", headers);
+
+    if (!response.empty()) {
+        nlohmann::json jsonData;
+        try {
+            jsonData = nlohmann::json::parse(response);
+            std::string raw = jsonData["server"];  // "[::]:5555"
+            response = raw;
+        } catch (const std::exception& e) {
+            std::cerr << "Failed to parse JSON server IP: " << e.what() << std::endl;
+            return {};
+        }
+    }
+
     return response;
 }
 

@@ -54,8 +54,8 @@ Server::Server(const Arguments &arguments): Engine(arguments) {
 
     char ip[ENET_ADDRESS_MAX_LENGTH]; // 16 bytes is enough for IPv4
     if (enet_address_get_host_ip(&_server->address, ip, sizeof(ip)) == 0) {
-        std::cout << std::string(ip) + ":" + std::to_string(_server->address.port) << std::endl;
-        if(!_httpClient.registerServerMatchmaking(std::string(ip) + ":" + std::to_string(_server->address.port))) {
+        std::cout << std::string(ip) << std::endl;
+        if(!_httpClient.registerServerMatchmaking(std::string(ip))) {
             std::cerr << "Failed to register server." << std::endl;
             return;
         }
@@ -69,8 +69,7 @@ Server::Server(const Arguments &arguments): Engine(arguments) {
 Server::~Server() {
     char ip[ENET_ADDRESS_MAX_LENGTH]; // 16 bytes is enough for IPv4
     if (enet_address_get_host_ip(&_server->address, ip, sizeof(ip)) == 0) {
-        std::cout << std::string(ip) + ":" + std::to_string(_server->address.port) << std::endl;
-        if(!_httpClient.unregisterServerMatchmaking(std::string(ip) + ":" + std::to_string(_server->address.port))) {
+        if(!_httpClient.unregisterServerMatchmaking(std::string(ip))) {
             std::cerr << "Failed to unregister server." << std::endl;
             return;
         }

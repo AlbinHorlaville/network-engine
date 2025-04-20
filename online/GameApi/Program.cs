@@ -5,6 +5,8 @@ using System.Text;
 using StackExchange.Redis;
 using GameApi.Services;
 
+var redisPort = 6379;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Ajout de la lecture du fichier appsettings.json
@@ -39,7 +41,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // Register Redis as a singleton service.
-builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("localhost:6379"));
+builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("localhost:" + redisPort));
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<StatsService>();

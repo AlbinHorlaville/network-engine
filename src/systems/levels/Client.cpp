@@ -42,16 +42,46 @@ void Client::initENet6() {
     }
 
     ENetAddress address;
+    std::string raw = _currentServerIp;
     std::string ip;
-    uint16_t port = 5555; // default value
+    uint16_t port = 0;
 
-    // Simple parse (assuming format is always "ip:port")
-    auto colonPos = _currentServerIp.find(':');
-    if (colonPos != std::string::npos) {
-        ip = _currentServerIp.substr(0, colonPos);
-        port = static_cast<uint16_t>(std::stoi(_currentServerIp.substr(colonPos + 1)));
+    if (raw.front() == '[') {
+        // IPv6 wrapped in square brackets
+        auto endBracket = raw.find(']');
+        if (endBracket != std::string::npos && endBracket + 1 < raw.size() && raw[endBracket + 1] == ':') {
+            ip = raw.substr(1, endBracket - 1);  // e.g., "::"
+            try {
+                port = static_cast<uint16_t>(std::stoi(raw.substr(endBracket + 2)));
+            } catch (const std::exception& e) {
+                std::cerr << "Invalid port format in: " << raw << " - " << e.what() << std::endl;
+                return;
+            }
+        } else {
+            std::cerr << "Malformed IPv6 address: " << raw << std::endl;
+            return;
+        }
+    } else {
+        // IPv4 or domain name
+        auto colon = raw.rfind(':');
+        if (colon != std::string::npos && colon + 1 < raw.size()) {
+            ip = raw.substr(0, colon);
+            try {
+                port = static_cast<uint16_t>(std::stoi(raw.substr(colon + 1)));
+            } catch (const std::exception& e) {
+                std::cerr << "Invalid port format in: " << raw << " - " << e.what() << std::endl;
+                return;
+            }
+        } else {
+            std::cerr << "Malformed address: " << raw << std::endl;
+            return;
+        }
     }
 
+    if (ip == "::") {
+        ip = "::1";
+    }
+    std::cout << ip << std::endl;
     // Set address
     enet_address_set_host(&address, ENET_ADDRESS_TYPE_IPV6, ip.c_str());
     address.port = port;
@@ -78,17 +108,20 @@ void Client::tickEvent() {
 
     switch(_state) {
         case (InGame) :
-            networkUpdate();
-            tickMovments();
+            if (_client) {
+                networkUpdate();
+                tickMovments();
 
-            // Simulation physique
-            _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
+                // Simulation physique
+                _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
 
-            // Avance la timeline et redessine
-            _timeline.nextFrame();
+                // Avance la timeline et redessine
+                _timeline.nextFrame();
+            }
         break;
         case (Queue) :
             _currentServerIp = _httpClient.getMatchStatus();
+            std::cout << _currentServerIp << std::endl;
             if(!_currentServerIp.empty()) {
                 initSimulation();
                 // RX initialisation
