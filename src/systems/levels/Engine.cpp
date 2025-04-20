@@ -130,9 +130,30 @@ void Engine::drawImGUI() {
             ImGui::Text("Player %d : %d", i, _players[i]->_score);
         }
     }
+    ImVec2 windowSize = ImGui::GetIO().DisplaySize;
+    ImVec2 panelSizeFPS = ImVec2(0.15f * windowSize.x, windowSize.y / 10.f);
+
+    ImGui::SetNextWindowSize(panelSizeFPS);
+    ImGui::SetNextWindowPos(
+        ImVec2(windowSize.x - panelSizeFPS.x - 3.0f, 3.0f), // Top-right with a 3px margin
+        ImGuiCond_Always,
+        ImVec2(0.0f, 0.0f)
+    );
+
+    ImGui::Begin("Performances", nullptr, ImGuiWindowFlags_NoResize);
+    ImGui::Text("FPS : %f", fps_handler.get());
     ImGui::End();
 
     // 🔹 Fenêtre d'inspection de l'objet sélectionné
+    ImVec2 panelSizeInspector = ImVec2(0.32f * windowSize.x, windowSize.y / 5.f);
+
+    ImGui::SetNextWindowSize(panelSizeInspector);
+    ImGui::SetNextWindowPos(
+        ImVec2(windowSize.x - panelSizeInspector.x - 3.0f, windowSize.y - panelSizeInspector.y - 3.0f), // Bottom-right with a 3px margin
+        ImGuiCond_Always,
+        ImVec2(0.0f, 0.0f)
+    );
+
     if (_sceneTreeUI->_selectedObject) {
         ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 

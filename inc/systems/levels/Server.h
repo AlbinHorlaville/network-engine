@@ -8,6 +8,7 @@
 #include "Engine.h"
 #include "enet6/enet.h"
 #include "entities/primitives/Player.h"
+#include "systems/online/HttpClient.h"
 #include <array>
 
 struct DestroyedObject {
@@ -38,6 +39,7 @@ class Server : public Engine {
         float snapshotTimer = 0.0f;
         uint64_t _frame = 0;
         std::list<DestroyedObject*> _destroyedObjects;
+        HttpClient _httpClient;
 
     public:
         void tickEvent() override;

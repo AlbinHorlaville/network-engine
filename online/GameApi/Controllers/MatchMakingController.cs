@@ -1,6 +1,8 @@
 ﻿using GameApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.Text.RegularExpressions;
 
 namespace GameApi.Controllers
 {
@@ -28,16 +30,19 @@ namespace GameApi.Controllers
             return Ok("Player queued");
         }
 
-        [HttpGet("match")]
-        public async Task<IActionResult> GetMatch([FromQuery] int tier)
+        [HttpPost("unqueue")]
+        public async Task<IActionResult> UnqueuePlayer()
         {
-            var players = await _matchService.GetNextMatchAsync(tier);
-            if (players.Count == 0) return NotFound("Not enough players");
+            var username = User.Identity?.Name!;
+            var stats = await _statsService.GetStatsAsync(username);
+            var wins = stats?.GamesWon ?? 0;
+            int tier = Math.Min(wins / 10, 10);
+            var success = await _matchService.UnqueuePlayerAsync(username, tier);
 
-            var server = await _matchService.GetAvailableServerAsync();
-            if (server == null) return StatusCode(503, "No available server");
+            if (!success)
+                return NotFound("Player was not in queue.");
 
-            return Ok(new { Server = server, Players = players });
+            return Ok("Player unqueued");
         }
 
         [HttpPost("register")]
@@ -45,6 +50,29 @@ namespace GameApi.Controllers
         {
             await _matchService.RegisterServerAsync(ip);
             return Ok("Server registered");
+        }
+
+        [HttpPost("unregister")]
+        public async Task<IActionResult> UnregisterServer([FromQuery] string ip)
+        {
+            await _matchService.UnregisterServerAsync(ip);
+            return Ok("Server unregistered");
+        }
+
+        [HttpGet("status")]
+        public async Task<IActionResult> GetMatchStatus()
+        {
+            var username = User.Identity?.Name!;
+            string? matchFound = await _matchService.GetMatchStatusAsync(username);
+
+            if (matchFound.IsNullOrEmpty())
+            {
+                return NotFound("No match found");
+            } else
+            {
+                return Ok(new { Server = matchFound });
+            }
+ 
         }
     }
 }

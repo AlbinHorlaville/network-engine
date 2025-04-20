@@ -43,22 +43,6 @@
   },
   {
     "ContainingType": "GameApi.Controllers.MatchmakingController",
-    "Method": "GetMatch",
-    "RelativePath": "Matchmaking/match",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "tier",
-        "Type": "System.Int32",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "GameApi.Controllers.MatchmakingController",
     "Method": "QueuePlayer",
     "RelativePath": "Matchmaking/queue",
     "HttpMethod": "POST",
@@ -71,6 +55,42 @@
     "ContainingType": "GameApi.Controllers.MatchmakingController",
     "Method": "RegisterServer",
     "RelativePath": "Matchmaking/register",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "ip",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GameApi.Controllers.MatchmakingController",
+    "Method": "GetMatchStatus",
+    "RelativePath": "Matchmaking/status",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GameApi.Controllers.MatchmakingController",
+    "Method": "UnqueuePlayer",
+    "RelativePath": "Matchmaking/unqueue",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GameApi.Controllers.MatchmakingController",
+    "Method": "UnregisterServer",
+    "RelativePath": "Matchmaking/unregister",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,

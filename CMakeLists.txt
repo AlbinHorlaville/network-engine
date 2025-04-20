@@ -16,6 +16,21 @@ find_package(Magnum REQUIRED
 find_package(MagnumIntegration REQUIRED ImGui Bullet)
 find_package(Bullet REQUIRED Dynamics)
 
+include(FetchContent)
+FetchContent_Declare(
+        json
+        URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+)
+FetchContent_MakeAvailable(json)
+
+FetchContent_Declare(
+        httplib
+        GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
+        GIT_TAG        v0.15.3 # or latest
+)
+
+FetchContent_MakeAvailable(httplib)
+
 set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 
 file(GLOB_RECURSE COMMON_SOURCES src/components/*.cpp src/entities/*.cpp src/systems/*.cpp)
@@ -31,6 +46,8 @@ add_executable(Serveur
 add_executable(Client
         ${COMMON_SOURCES}
         src/client/client.cpp
+        inc/systems/online/HttpClient.h
+        src/systems/online/HttpClient.cpp
 )
 
 foreach(target IN ITEMS Serveur Client)
@@ -53,6 +70,8 @@ foreach(target IN ITEMS Serveur Client)
             LinearMath
             Bullet3Common
             enet
+            httplib::httplib
+            nlohmann_json::nlohmann_json
     )
     target_include_directories(${target} PRIVATE externals/enet6/include)
 endforeach()

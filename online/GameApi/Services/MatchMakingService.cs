@@ -14,41 +14,33 @@ namespace GameApi.Services
 
         public async Task QueuePlayerAsync(string username, int gamesWon)
         {
-            int tier = gamesWon / 10;
+            int tier = Math.Min(gamesWon / 10, 10);
             await _db.ListRightPushAsync($"queue:tier:{tier}", username);
         }
 
-        public async Task<List<string>> GetNextMatchAsync(int tier)
+        public async Task<bool> UnqueuePlayerAsync(string username, int tier)
         {
-            var players = await _db.ListLeftPopAsync($"queue:tier:{tier}", 4);
-            return players.Select(p => p.ToString()).ToList();
+            long removed = await _db.ListRemoveAsync($"queue:tier:{tier}", username);
+            if (removed > 0)
+                return true;
+
+            return false; // Player was not found in any queue
         }
 
         public async Task RegisterServerAsync(string ip)
         {
             await _db.SetAddAsync("servers", ip);
-            await _db.StringSetAsync($"server:{ip}:available", true);
         }
 
-        public async Task<string?> GetAvailableServerAsync()
+        public async Task UnregisterServerAsync(string ip)
         {
-            var servers = await _db.SetMembersAsync("servers");
-            foreach (var server in servers)
-            {
-                var isAvailable = await _db.StringGetAsync($"server:{server}:available");
-                if (isAvailable == "True")
-                {
-                    await _db.StringSetAsync($"server:{server}:available", false);
-                    return server.ToString();
-                }
-            }
-
-            return null;
+            await _db.SetRemoveAsync("servers", ip);
         }
 
-        public async Task MarkServerAvailableAsync(string ip)
+        public async Task<string?> GetMatchStatusAsync(string username)
         {
-            await _db.StringSetAsync($"server:{ip}:available", true);
+            var match = await _db.StringGetAsync($"player:{username}:match");
+            return match;
         }
     }
 }

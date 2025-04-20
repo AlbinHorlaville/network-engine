@@ -49,9 +49,37 @@ Server::Server(const Arguments &arguments): Engine(arguments) {
 
     // RX initialisation
     initENet6();
+
+    _httpClient = HttpClient();
+    _httpClient.login("Server", "SecuredPassword");
+
+    char ip[ENET_ADDRESS_MAX_LENGTH]; // 16 bytes is enough for IPv4
+    if (enet_address_get_host_ip(&_server->address, ip, sizeof(ip)) == 0) {
+        std::cout << std::string(ip) + ":" + std::to_string(_server->address.port) << std::endl;
+        if(!_httpClient.registerServerMatchmaking(std::string(ip) + ":" + std::to_string(_server->address.port))) {
+            std::cerr << "Failed to register server." << std::endl;
+            return;
+        }
+    }
+    else {
+        std::cerr << "Failed to register server." << std::endl;
+        return;
+    }
 }
 
 Server::~Server() {
+    char ip[ENET_ADDRESS_MAX_LENGTH]; // 16 bytes is enough for IPv4
+    if (enet_address_get_host_ip(&_server->address, ip, sizeof(ip)) == 0) {
+        std::cout << std::string(ip) + ":" + std::to_string(_server->address.port) << std::endl;
+        if(!_httpClient.unregisterServerMatchmaking(std::string(ip) + ":" + std::to_string(_server->address.port))) {
+            std::cerr << "Failed to unregister server." << std::endl;
+            return;
+        }
+    }
+    else {
+        std::cerr << "Failed to unregister server." << std::endl;
+        return;
+    }
     Engine::~Engine();
     enet_host_destroy(_server);
 }
