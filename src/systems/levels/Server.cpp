@@ -40,7 +40,7 @@ Server::Server(const Arguments &arguments): Engine(arguments) {
             for (Int k = 0; k != 3; ++k) {
                 Color3 color = Color3(1.0f, 1.0f, 1.0f);
                 auto *o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 3.f, color);
-                o->_rigidBody->translate({i - 2.0f, j + 4.0f, k - 2.0f});
+                o->_rigidBody->translate({i - 2.0f, j + 2.0f, k - 2.0f});
                 o->_rigidBody->syncPose();
                 addObject(o);
             }

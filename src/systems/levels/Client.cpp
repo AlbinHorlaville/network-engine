@@ -121,6 +121,18 @@ void Client::handleReceive(const ENetEvent &event) {
             sendSnapshotACK(event.peer);
             break;
         }
+<<<<<<< Updated upstream
+=======
+        case MSG_INPUTS_ACK: {
+            uint64_t sentTime;
+            iss.read(reinterpret_cast<char*>(&sentTime), sizeof(sentTime));
+
+            uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count();
+            _pingHandler.update(sentTime, now);
+            break;
+        }
+>>>>>>> Stashed changes
         default: break;
     }
 }
