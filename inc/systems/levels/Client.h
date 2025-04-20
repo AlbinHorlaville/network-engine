@@ -39,7 +39,6 @@ class Client : public Engine {
         HttpClient _httpClient;
         std::string _currentServerIp;
         std::array<Player*, 4> _players = { nullptr };
-        uint8_t _frame = 0;
         bool _loginProblem = false;
 
     public:
