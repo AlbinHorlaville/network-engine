@@ -8,6 +8,8 @@
 #include "enet6/enet.h"
 #include "entities/primitives/Player.h"
 #include "Engine.h"
+#include "systems/network/PackageType.h"
+#include "systems/network/PingHandler.h"
 #include "systems/online/HttpClient.h"
 
 enum ClientState {
@@ -24,15 +26,19 @@ class Client : public Engine {
         ~Client();
 
     private:
-        uint8_t _id; // Send by the server, from 0 to 3.
+        uint8_t _id = 5; // Send by the server, from 0 to 3.
         ENetHost* _client;
         ENetPeer* _peer;
         ClientState _state = WelcomeScreen;
         int connectTypeOption = 0;
+        PingHandler _pingHandler;
+        uint64_t _frame = 0;
+        Input* _inputs = nullptr;
+        btVector3 _directionShoot;
+        Vector3 _translateShoot;
         HttpClient _httpClient;
         std::string _currentServerIp;
         std::array<Player*, 4> _players = { nullptr };
-        uint8_t _frame = 0;
         bool _loginProblem = false;
 
     public:
@@ -41,8 +47,10 @@ class Client : public Engine {
         void handleReceive(const ENetEvent &event);
         void handleDisconnect(const ENetEvent &event);
         void sendSnapshotACK(ENetPeer *peer);
+        void sendInputs();
         void initENet6();
         void pointerPressEvent(PointerEvent& event) override;
+        void pointerReleaseEvent(PointerEvent& event) override;
         void keyPressEvent(KeyEvent& event) override;
         void keyReleaseEvent(KeyEvent& event) override;
         void textInputEvent(TextInputEvent& event) override;

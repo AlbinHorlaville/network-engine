@@ -8,6 +8,7 @@
 #include <list>
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 class GameObject;
@@ -24,7 +25,7 @@ class SceneTree {
 public:
     GameObject* _selectedObject = nullptr;
     SceneTree() = delete;
-    SceneTree(std::map<std::string, GameObject*>* gameObjects);
+    SceneTree(std::unordered_map<std::string, GameObject*>* gameObjects);
     ~SceneTree() = default;
 
     // Draw the entire scene tree
@@ -34,7 +35,7 @@ private:
     // Draw a given node of the scene tree
     void DrawNode(SceneNode& node);
 
-    std::map<std::string, GameObject *> *_gameObjects;
+    std::unordered_map<std::string, GameObject *> *_gameObjects;
 };
 
 #endif //SCENETREE_H

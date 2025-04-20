@@ -18,6 +18,7 @@ Cube::Cube(Engine* app, std::string name, Object3D *parent, const btVector3 scal
 
     // Physics
     this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
+    _rigidBody->_bRigidBody->setUserPointer(static_cast<void*>(this));
 
     // Appearances
     Cube::setColor(color);
@@ -34,7 +35,7 @@ Cube::Cube(Engine* app, Object3D* parent, const btVector3 scale, const float mas
 
     // Physics
     this->_rigidBody = new RigidBody{parent, _mass, &_collisionShape, _app->getWorld()};
-
+    _rigidBody->_bRigidBody->setUserPointer(static_cast<void*>(this));
     // Appearance
     Cube::setColor(color);
 }
@@ -57,7 +58,7 @@ void Cube::setScale(btVector3 newScale) {
     _rigidBody->rigidBody().setCollisionShape(&_collisionShape);
 
     // Recalculer l'inertie si le corps est dynamique
-    btScalar mass = _rigidBody->rigidBody().getInvMass() == 0 ? 0 : 1.0 / _rigidBody->rigidBody().getInvMass();
+    const btScalar mass = _rigidBody->rigidBody().getInvMass() == 0 ? 0 : static_cast<btScalar>(1.0) / _rigidBody->rigidBody().getInvMass();
     btVector3 inertia(0, 0, 0);
     if (mass > 0.f) {
         _collisionShape.calculateLocalInertia(mass, inertia);

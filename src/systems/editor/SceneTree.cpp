@@ -6,7 +6,7 @@
 #include "entities/GameObject.h"
 #include "imgui.h"
 
-SceneTree::SceneTree(std::map<std::string, GameObject*>* gameObjects) {
+SceneTree::SceneTree(std::unordered_map<std::string, GameObject*>* gameObjects) {
     _gameObjects = gameObjects;
 }
 

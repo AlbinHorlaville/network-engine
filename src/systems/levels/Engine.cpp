@@ -12,6 +12,7 @@
 #include "components/RigidBody.h"
 #include "entities/primitives/Cube.h"
 #include <Magnum/ImGuiIntegration/Context.hpp>
+#include "entities/primitives/Player.h"
 
 
 Engine::Engine(const Arguments &arguments) : Platform::Application(arguments, NoCreate) {
@@ -113,6 +114,22 @@ void Engine::drawImGUI() {
     _sceneTreeUI->DrawSceneTree();
 
     // Show FPS
+    ImGui::Begin("Performances", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    for (auto &player : _players) {
+        if (player) {
+            ImGui::Text("Player %d | FPS : %d, Ping : %d ms", player->_playerID, player->_fps, player->_ping);
+        }
+    }
+    ImGui::End();
+
+    // LeaderBoard
+    ImGui::Begin("Leaderboard", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    const int size = static_cast<int>(_players.size());
+    for (int i = 0; i<size; i++) {
+        if (_players[i]) {
+            ImGui::Text("Player %d : %d", i, _players[i]->_score);
+        }
+    }
     ImVec2 windowSize = ImGui::GetIO().DisplaySize;
     ImVec2 panelSizeFPS = ImVec2(0.15f * windowSize.x, windowSize.y / 10.f);
 
@@ -183,29 +200,6 @@ void Engine::drawImGUI() {
     GL::Renderer::disable(GL::Renderer::Feature::Blending);
 }
 
-void Engine::tickMovments() {
-    constexpr float moveSpeed = 10.f; // Adjust speed as needed
-    const float deltaTime = _timeline.previousFrameDuration();
-
-    if(_pressedKeys.count(Key::R)) {
-        _pProjectileManager->_shootSphere = false;
-    }
-
-    /* Movement */
-    if (_pressedKeys.count(Key::W))
-        _cameraRig->translateLocal(Vector3::zAxis(-moveSpeed * deltaTime));
-    if (_pressedKeys.count(Key::S))
-        _cameraRig->translateLocal(Vector3::zAxis(moveSpeed * deltaTime));
-    if (_pressedKeys.count(Key::A))
-        _cameraRig->translateLocal(Vector3::xAxis(-moveSpeed * deltaTime));
-    if (_pressedKeys.count(Key::D))
-        _cameraRig->translateLocal(Vector3::xAxis(moveSpeed * deltaTime));
-    if (_pressedKeys.count(Key::Q))
-        _cameraRig->translateLocal(Vector3::yAxis(moveSpeed * deltaTime));
-    if (_pressedKeys.count(Key::E))
-        _cameraRig->translateLocal(Vector3::yAxis(-moveSpeed * deltaTime));
-}
-
 void Engine::drawGraphics() {
     if(_drawCubes) {
         /* Populate instance data with transformations and colors */
@@ -226,7 +220,6 @@ void Engine::drawGraphics() {
 }
 
 void Engine::tickEvent() {
-    tickMovments();
 
     // Simulation physique
     _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
@@ -245,63 +238,15 @@ void Engine::drawEvent() {
 }
 
 void Engine::keyPressEvent(KeyEvent& event) {
-    _pressedKeys.insert(event.key());
-
-    // Sérialiser tous les objets
-    if (event.key() == Key::U) {
-        std::ofstream fileOut("objects.bin", std::ios::binary);
-        serialize(fileOut);
-        for (auto it = _objects.begin(); it != _objects.end(); ) {
-            auto obj = it->second;
-            _linkingContext.Unregister(obj);
-            delete obj;
-            it = _objects.erase(it);
-        }
-        fileOut.close();
-    }
-
-    // Désérialiser tous les objets
-    if (event.key() == Key::I) {
-        std::ifstream fileIn("objects.bin", std::ios::binary);
-        if (fileIn) {  // Vérifie si le fichier a été ouvert avec succès
-            unserialize(fileIn);
-        } else {
-            std::cerr << "Erreur : le fichier objects.bin n'existe pas." << std::endl;
-        }
-        fileIn.close();
-    }
-
     event.setAccepted();
 }
 
 void Engine::keyReleaseEvent(KeyEvent& event) {
-    _pressedKeys.erase(event.key()); // Remove key when released
     event.setAccepted();
 }
 
 void Engine::pointerPressEvent(PointerEvent& event) {
     if(_imgui.handlePointerPressEvent(event)) return;
-
-    /* Shoot an object on click */
-    if(!event.isPrimary() ||
-       !(event.pointer() & Pointer::MouseLeft))
-        return;
-
-    /* First scale the position from being relative to window size to being
-       relative to framebuffer size as those two can be different on HiDPI
-       systems */
-    const Vector2 position = event.position()*Vector2{framebufferSize()}/Vector2{windowSize()};
-    const Vector2 clickPoint = Vector2::yScale(-1.0f)*(position/Vector2{framebufferSize()} - Vector2{0.5f})*_camera->projectionSize();
-    btVector3 direction = btVector3((_cameraObject->absoluteTransformation().rotationScaling() * Vector3{clickPoint, -1.0f}).
-        normalized());
-    Vector3 translate = _cameraObject->absoluteTransformation().translation();
-
-    GameObject* projectile = _pProjectileManager->Shoot(this, &_scene, translate, direction);
-    projectile->setMass(1000);
-    //projectile->_location = btVector3(translate);
-    addObject(projectile);
-
-    event.setAccepted();
 }
 
 void Engine::pointerReleaseEvent(PointerEvent& event) {

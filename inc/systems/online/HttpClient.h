@@ -9,7 +9,6 @@
 
 #include <string>
 #include <map>
-#include <cpr/cpr.h>
 
 class HttpClient {
 public:

@@ -52,6 +52,7 @@ public:
     RigidBody* _rigidBody = nullptr;
     Color3 _color;
     ColoredDrawable* _drawable = nullptr;
+    uint8_t _owner = 5; // Who (a player) has hit first this object
 
     GameObject(std::string name, float m) : _name(std::move(name)), _mass(m), _rigidBody(nullptr) {}
     ~GameObject() {
