@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\GameApi.csproj": {}
+    "C:\\Users\\User\\OneDrive\\Documents\\GitHub\\network-engine\\online\\GameApi\\GameApi.csproj": {}
   },
   "projects": {
-    "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\GameApi.csproj": {
+    "C:\\Users\\User\\OneDrive\\Documents\\GitHub\\network-engine\\online\\GameApi\\GameApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\GameApi.csproj",
+        "projectUniqueName": "C:\\Users\\User\\OneDrive\\Documents\\GitHub\\network-engine\\online\\GameApi\\GameApi.csproj",
         "projectName": "GameApi",
-        "projectPath": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\GameApi.csproj",
-        "packagesPath": "C:\\Users\\orgor\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\obj\\",
+        "projectPath": "C:\\Users\\User\\OneDrive\\Documents\\GitHub\\network-engine\\online\\GameApi\\GameApi.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\User\\OneDrive\\Documents\\GitHub\\network-engine\\online\\GameApi\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\orgor\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -22,7 +26,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -40,7 +43,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -78,7 +82,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.401/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.102/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

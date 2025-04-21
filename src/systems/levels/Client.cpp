@@ -84,7 +84,6 @@ void Client::initENet6() {
     if (ip == "::") {
         ip = "::1";
     }
-    std::cout << ip << std::endl;
     // Set address
     enet_address_set_host(&address, ENET_ADDRESS_TYPE_IPV6, ip.c_str());
     address.port = port;
@@ -111,11 +110,8 @@ void Client::tickEvent() {
 
     switch(_state) {
         case (InGame) :
-<<<<<<< HEAD
             if (_client) {
                 networkUpdate();
-                tickMovments();
-
                 // Simulation physique
                 _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
             sendInputs();
@@ -126,7 +122,6 @@ void Client::tickEvent() {
         break;
         case (Queue) :
             _currentServerIp = _httpClient.getMatchStatus();
-            std::cout << _currentServerIp << std::endl;
             if(!_currentServerIp.empty()) {
                 initSimulation();
                 // RX initialisation
@@ -134,10 +129,12 @@ void Client::tickEvent() {
                 _state = InGame;
             }
         break;
+        case (EndGame) :
+            // Rien à faire pour l'instant
+            break;
         default:
             break;
     }
-
 }
 
 void Client::networkUpdate() {
@@ -167,12 +164,8 @@ void Client::handleReceive(const ENetEvent &event) {
 
     switch (type) {
         case MSG_ASSIGN_ID: {
-            uint8_t id;
-            iss.read(reinterpret_cast<char*>(&id), sizeof(id));
-            std::cout << "ID recu du serveur : " << static_cast<int>(id) << std::endl;
-
-            // Tu peux sauvegarder cet ID dans une variable membre, si besoin
-            _id = id;
+            iss.read(reinterpret_cast<char*>(&_id), sizeof(uint8_t));
+            sendUsername(event.peer);
             break;
         }
         case MSG_WORLD_SYNC: {
@@ -186,8 +179,11 @@ void Client::handleReceive(const ENetEvent &event) {
 
             uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
-            std::cout << now - sentTime << std::endl;
             _pingHandler.update(sentTime, now);
+            break;
+        }
+        case MSG_END_GAME: {
+            _state = EndGame;
             break;
         }
         default: break;
@@ -205,8 +201,6 @@ void Client::drawEvent() {
         case (InGame):
             drawGraphics();
             drawImGUI();
-
-            fps_handler.update();
         break;
         case (WelcomeScreen) :
             _imgui.newFrame();
@@ -223,6 +217,11 @@ void Client::drawEvent() {
             drawLobbyWindow();
             endFrame();
         break;
+        case (EndGame):
+            _imgui.newFrame();
+            drawEndGameWindow();
+            endFrame();
+            break;
         default:
             break;
     }
@@ -304,6 +303,7 @@ void Client::drawLoginWindow() {
             {
                 if (_httpClient.login(usernameLogin, passwordLogin)) {
                     _state = Lobby;
+                    _username = usernameLogin;
                     std::memset(usernameLogin, 0, sizeof(usernameLogin));
                     std::memset(passwordLogin, 0, sizeof(passwordLogin));
                     _loginProblem = false;
@@ -330,6 +330,35 @@ void Client::drawLoginWindow() {
             } else {
                 ImGui::Text("Username is already taken.");
             }
+        }
+
+        ImGui::End();
+    }
+}
+
+void Client::drawEndGameWindow() {
+    ImVec2 windowSize = ImGui::GetMainViewport()->Size;
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always, ImVec2(0.0f, 0.0f)); // Place window in top-left corner
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y)); // Set a dynamic size corresponding to parent window size
+
+    if (ImGui::Begin("End of the game !", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        std::vector<Player*> sortedPlayers(_players.begin(), _players.end());
+
+        std::sort(sortedPlayers.begin(), sortedPlayers.end(), [](Player* a, Player* b) {
+            return a->_score > b->_score;
+        });
+
+        for (size_t i = 0; i < sortedPlayers.size(); ++i) {
+            if (i==0) {
+                ImGui::Text("1er - %s with %d", sortedPlayers[i]->_name.c_str(), sortedPlayers[i]->_score);
+            }
+            else {
+                ImGui::Text("%deme - %s with %d", i, sortedPlayers[i]->_name.c_str(), sortedPlayers[i]->_score);
+            }
+        }
+
+        if (ImGui::Button("Return to menu")) {
+            _state = Lobby;
         }
 
         ImGui::End();
@@ -393,7 +422,6 @@ void Client::sendInputs() {
     enet_peer_send(_peer, 0, packet);
 }
 
-
 void Client::pointerPressEvent(PointerEvent &event) {
     if(_imgui.handlePointerPressEvent(event)) return;
     *_inputs = *_inputs | Input::Shoot;
@@ -407,7 +435,6 @@ void Client::pointerReleaseEvent(PointerEvent &event) {
     if (_imgui.handlePointerReleaseEvent(event)) return;
     *_inputs = *_inputs & ~Input::Shoot;
 }
-
 
 void Client::keyPressEvent(KeyEvent &event) {
     if (_imgui.handleKeyPressEvent(event)) return;
@@ -532,3 +559,22 @@ void Client::endFrame() {
     GL::Renderer::disable(GL::Renderer::Feature::Blending);
 }
 
+void Client::sendUsername(ENetPeer *peer) {
+    std::ostringstream oss(std::ios::binary);
+
+    // Mettre le flag
+    PackageType flag = MSG_USERNAME;
+    oss.write(reinterpret_cast<const char*>(&flag), sizeof(PackageType));
+    oss.write(reinterpret_cast<const char*>(&_id), sizeof(uint8_t));
+    size_t length = _username.length();
+    oss.write(reinterpret_cast<const char*>(&length), sizeof(size_t));
+    oss.write(_username.data(), length);
+
+    std::string data = oss.str();
+    ENetPacket* packet = enet_packet_create(
+        data.data(), data.size(),
+        ENET_PACKET_FLAG_RELIABLE
+    );
+
+    enet_peer_send(peer, 1, packet);
+}

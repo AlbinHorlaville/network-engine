@@ -34,7 +34,7 @@ Engine::Engine(const Arguments &arguments) : Platform::Application(arguments, No
     GL::Renderer::BlendEquation::Add);
     GL::Renderer::setBlendFunction(GL::Renderer::BlendFunction::SourceAlpha,
     GL::Renderer::BlendFunction::OneMinusSourceAlpha);
-
+    fps_handler.init();
     startTextInput();
 }
 
@@ -109,42 +109,49 @@ void Engine::initSimulation() {
 void Engine::drawImGUI() {
     // Start new ImGui frame
     _imgui.newFrame();
+    fps_handler.update();
 
     // Render ImGui
     _sceneTreeUI->DrawSceneTree();
 
     // Show FPS
-    ImGui::Begin("Performances", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    for (auto &player : _players) {
-        if (player) {
-            ImGui::Text("Player %d | FPS : %d, Ping : %d ms", player->_playerID, player->_fps, player->_ping);
+    bool open = ImGui::Begin("Performances", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    if (open) {
+        for (auto &player : _players) {
+            if (player) {
+                ImGui::Text("%s | FPS : %d, Ping : %d ms", player->_name.c_str(), player->_fps, player->_ping);
+            }
         }
     }
     ImGui::End();
 
     // LeaderBoard
-    ImGui::Begin("Leaderboard", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    const int size = static_cast<int>(_players.size());
-    for (int i = 0; i<size; i++) {
-        if (_players[i]) {
-            ImGui::Text("Player %d : %d", i, _players[i]->_score);
+    open = ImGui::Begin("Leaderboard", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+    if (open) {
+        const int size = static_cast<int>(_players.size());
+        for (int i = 0; i<size; i++) {
+            if (_players[i]) {
+                ImGui::Text("%s : %d", _players[i]->_name.c_str(), _players[i]->_score);
+            }
         }
+        /*
+        ImVec2 windowSize = ImGui::GetIO().DisplaySize;
+        ImVec2 panelSizeFPS = ImVec2(0.15f * windowSize.x, windowSize.y / 10.f);
+
+        ImGui::SetNextWindowSize(panelSizeFPS);
+        ImGui::SetNextWindowPos(
+            ImVec2(windowSize.x - panelSizeFPS.x - 3.0f, 3.0f), // Top-right with a 3px margin
+            ImGuiCond_Always,
+            ImVec2(0.0f, 0.0f)
+        );
+        */
     }
-    ImVec2 windowSize = ImGui::GetIO().DisplaySize;
-    ImVec2 panelSizeFPS = ImVec2(0.15f * windowSize.x, windowSize.y / 10.f);
-
-    ImGui::SetNextWindowSize(panelSizeFPS);
-    ImGui::SetNextWindowPos(
-        ImVec2(windowSize.x - panelSizeFPS.x - 3.0f, 3.0f), // Top-right with a 3px margin
-        ImGuiCond_Always,
-        ImVec2(0.0f, 0.0f)
-    );
-
-    ImGui::Begin("Performances", nullptr, ImGuiWindowFlags_NoResize);
-    ImGui::Text("FPS : %f", fps_handler.get());
     ImGui::End();
 
     // 🔹 Fenêtre d'inspection de l'objet sélectionné
+    /*
+    ImVec2 windowSize = ImGui::GetIO().DisplaySize;
     ImVec2 panelSizeInspector = ImVec2(0.32f * windowSize.x, windowSize.y / 5.f);
 
     ImGui::SetNextWindowSize(panelSizeInspector);
@@ -153,37 +160,34 @@ void Engine::drawImGUI() {
         ImGuiCond_Always,
         ImVec2(0.0f, 0.0f)
     );
+    */
 
     if (_sceneTreeUI->_selectedObject) {
-        ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-
-        ImGui::Text("Name: %s", _sceneTreeUI->_selectedObject->_name.c_str());
-
-        ImGui::Text("Position: (%.2f, %.2f, %.2f)",
-                    static_cast<double>(_sceneTreeUI->_selectedObject->_location.x()),
-                    static_cast<double>(_sceneTreeUI->_selectedObject->_location.y()),
-                    static_cast<double>(_sceneTreeUI->_selectedObject->_location.z()));
-
-        ImGui::Text("Rotation: (%.2f, %.2f, %.2f, %.2f)",
-            static_cast<double>(_sceneTreeUI->_selectedObject->_rotation.x()),
-            static_cast<double>(_sceneTreeUI->_selectedObject->_rotation.y()),
-            static_cast<double>(_sceneTreeUI->_selectedObject->_rotation.z()),
-            static_cast<double>(_sceneTreeUI->_selectedObject->_rotation.w()));
-
-        if (auto cube = dynamic_cast<Cube*>(_sceneTreeUI->_selectedObject)) {
-            ImGui::Text("Scale : (%.2f, %.2f, %.2f)",
-                static_cast<double>(cube->_scale.x()),
-                static_cast<double>(cube->_scale.y()),
-                static_cast<double>(cube->_scale.z()));
+        open = ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+        if (open) {
+            ImGui::Text("Name: %s", _sceneTreeUI->_selectedObject->_name.c_str());
+            ImGui::Text("Position: (%.2f, %.2f, %.2f)",
+                        static_cast<double>(_sceneTreeUI->_selectedObject->_location.x()),
+                        static_cast<double>(_sceneTreeUI->_selectedObject->_location.y()),
+                        static_cast<double>(_sceneTreeUI->_selectedObject->_location.z()));
+            ImGui::Text("Rotation: (%.2f, %.2f, %.2f, %.2f)",
+                static_cast<double>(_sceneTreeUI->_selectedObject->_rotation.x()),
+                static_cast<double>(_sceneTreeUI->_selectedObject->_rotation.y()),
+                static_cast<double>(_sceneTreeUI->_selectedObject->_rotation.z()),
+                static_cast<double>(_sceneTreeUI->_selectedObject->_rotation.w()));
+            if (auto cube = dynamic_cast<Cube*>(_sceneTreeUI->_selectedObject)) {
+                ImGui::Text("Scale : (%.2f, %.2f, %.2f)",
+                    static_cast<double>(cube->_scale.x()),
+                    static_cast<double>(cube->_scale.y()),
+                    static_cast<double>(cube->_scale.z()));
+            }
+            if (auto sphere = dynamic_cast<Sphere*>(_sceneTreeUI->_selectedObject)) {
+                ImGui::Text("Scale : %.2f",
+                    static_cast<double>(sphere->_scale));
+            }
+            ImGui::Text("Mass : %.2f",
+                static_cast<double>(_sceneTreeUI->_selectedObject->_mass));
         }
-        if (auto sphere = dynamic_cast<Sphere*>(_sceneTreeUI->_selectedObject)) {
-            ImGui::Text("Scale : %.2f",
-                static_cast<double>(sphere->_scale));
-        }
-
-        ImGui::Text("Mass : %.2f",
-            static_cast<double>(_sceneTreeUI->_selectedObject->_mass));
-
         ImGui::End();
     }
 
@@ -234,7 +238,6 @@ void Engine::drawEvent() {
     drawGraphics();
     drawImGUI();
     swapBuffers();
-    fps_handler.update();
 }
 
 void Engine::keyPressEvent(KeyEvent& event) {

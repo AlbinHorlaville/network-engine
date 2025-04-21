@@ -42,6 +42,8 @@ class Server : public Engine {
         HttpClient _httpClient;
 
     public:
+        bool somebodyHasWin() const;
+        void sendEndGame();
         void tickEvent() override;
         void cleanWorld();
         void networkUpdate() override;

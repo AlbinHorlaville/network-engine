@@ -18,6 +18,7 @@ enum ClientState {
     Queue,
     FoundMatch,
     InGame,
+    EndGame
 };
 
 class Client : public Engine {
@@ -27,6 +28,7 @@ class Client : public Engine {
 
     private:
         uint8_t _id = 5; // Send by the server, from 0 to 3.
+        std::string _username;
         ENetHost* _client;
         ENetPeer* _peer;
         ClientState _state = WelcomeScreen;
@@ -38,7 +40,6 @@ class Client : public Engine {
         Vector3 _translateShoot;
         HttpClient _httpClient;
         std::string _currentServerIp;
-        std::array<Player*, 4> _players = { nullptr };
         bool _loginProblem = false;
 
     public:
@@ -47,6 +48,7 @@ class Client : public Engine {
         void handleReceive(const ENetEvent &event);
         void handleDisconnect(const ENetEvent &event);
         void sendSnapshotACK(ENetPeer *peer);
+        void sendUsername(ENetPeer *peer);
         void sendInputs();
         void initENet6();
         void pointerPressEvent(PointerEvent& event) override;
@@ -61,6 +63,7 @@ class Client : public Engine {
         void drawLoginWindow();
         void drawLobbyWindow();
         void drawQueueWindow();
+        void drawEndGameWindow();
 };
 
 

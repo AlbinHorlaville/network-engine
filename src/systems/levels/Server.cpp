@@ -115,7 +115,9 @@ void Server::tickEvent() {
     cleanWorld();
     handleCollision();
     networkUpdate();
-
+    if (somebodyHasWin()) {
+        sendEndGame();
+    }
     // Simulation physique
     _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
 
@@ -161,7 +163,6 @@ void Server::handleCollision() {
         _pWorld->_bWorld->contactTest(body, callback);
     }
 }
-
 
 void Server::cleanWorld() {
     _pWorld->cleanWorld();
@@ -234,6 +235,7 @@ void Server::networkUpdate() {
         }
     }
     sendSnapshot();
+    enet_packet_destroy(event.packet);
     /*
     snapshotTimer += deltaTime.get();
 
@@ -277,8 +279,17 @@ void Server::handleReceive(const ENetEvent &event) {
     std::istringstream iss(std::string(payload, payloadSize), std::ios::binary);
     PackageType type;
     iss.read(reinterpret_cast<char*>(&type), sizeof(type));
-
+    int tipe = type;
     switch (type) {
+        case MSG_USERNAME : {
+            uint8_t id_client;
+            iss.read(reinterpret_cast<char*>(&id_client), sizeof(uint8_t));
+            size_t length;
+            iss.read(reinterpret_cast<char*>(&length), sizeof(size_t));
+            _players[id_client]->_name.resize(length);
+            iss.read(&_players[id_client]->_name[0], length);
+            break;
+        }
         case MSG_WORLD_ACK: {
             uint8_t id_client;
             iss.read(reinterpret_cast<char*>(&id_client), sizeof(uint8_t));
@@ -421,3 +432,36 @@ void Server::serialize(std::ostream &ostr) const {
 }
 
 void Server::unserialize(std::istream&) {}
+
+bool Server::somebodyHasWin() const {
+    int nbCubes = 0;
+    for (const auto& pair : _objects) {
+        auto cube = dynamic_cast<Cube*>(pair.second);
+        if (cube) {
+            nbCubes++;
+        }
+    }
+    return nbCubes == 1;
+}
+
+void Server::sendEndGame() {
+    std::ostringstream oss(std::ios::binary);
+
+    // Mettre le flag
+    PackageType flag = MSG_END_GAME;
+    oss.write(reinterpret_cast<const char*>(&flag), sizeof(flag));
+
+    serialize(oss); // Envoie d'une snapshot pour être sûr que les joueurs auront les bons scores
+
+    std::string data = oss.str();
+    ENetPacket* packet = enet_packet_create(
+        data.data(), data.size(),
+        ENET_PACKET_FLAG_RELIABLE
+    );
+
+    for (auto player : _players) {
+        if (player) {
+            enet_peer_send(player->_peer, 1, packet);
+        }
+    }
+}
