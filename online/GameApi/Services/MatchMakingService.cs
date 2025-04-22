@@ -1,4 +1,5 @@
-﻿using StackExchange.Redis;
+﻿using Microsoft.AspNetCore.Mvc;
+using StackExchange.Redis;
 using System.Text.Json;
 
 namespace GameApi.Services
@@ -41,6 +42,11 @@ namespace GameApi.Services
         {
             var match = await _db.StringGetAsync($"player:{username}:match");
             return match;
+        }
+
+        public async Task RemovePlayerFromMatchAsync(string username)
+        {
+            await _db.KeyDeleteAsync($"player:{username}:match");
         }
     }
 }

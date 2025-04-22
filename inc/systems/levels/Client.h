@@ -16,6 +16,7 @@ enum ClientState {
     WelcomeScreen,
     Lobby,
     Queue,
+    Stats,
     FoundMatch,
     InGame,
     EndGame
@@ -41,6 +42,7 @@ class Client : public Engine {
         HttpClient _httpClient;
         std::string _currentServerIp;
         bool _loginProblem = false;
+        PlayerStats _stats;
 
     public:
         void tickEvent() override;
@@ -64,6 +66,7 @@ class Client : public Engine {
         void drawLobbyWindow();
         void drawQueueWindow();
         void drawEndGameWindow();
+        void drawStatsWindow();
 };
 
 

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using System.Text.RegularExpressions;
 
 namespace GameApi.Controllers
@@ -73,6 +74,13 @@ namespace GameApi.Controllers
                 return Ok(new { Server = matchFound });
             }
  
+        }
+
+        [HttpDelete("match/{username}")]
+        public async Task<IActionResult> RemovePlayerFromMatch(string username)
+        {
+            await _matchService.RemovePlayerFromMatchAsync(username);
+            return NoContent(); // 204 No Content is common for delete success
         }
     }
 }

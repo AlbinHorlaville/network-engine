@@ -40,6 +40,8 @@ class Server : public Engine {
         uint64_t _frame = 0;
         std::list<DestroyedObject*> _destroyedObjects;
         HttpClient _httpClient;
+        std::string _ip;
+        bool _gameEnded = false;
 
     public:
         bool somebodyHasWin() const;

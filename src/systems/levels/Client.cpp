@@ -217,6 +217,11 @@ void Client::drawEvent() {
             drawLobbyWindow();
             endFrame();
         break;
+        case (Stats) :
+            _imgui.newFrame();
+            drawStatsWindow();
+            endFrame();
+        break;
         case (EndGame):
             _imgui.newFrame();
             drawEndGameWindow();
@@ -235,20 +240,19 @@ void Client::drawQueueWindow() {
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always, ImVec2(0.0f, 0.0f)); // Place window in top-left corner
     ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y)); // Set a dynamic size corresponding to parent window size
 
-    if (ImGui::Begin("Queue", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Begin("Queue", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-        ImGui::Text("Waiting for players and server...");
+    ImGui::Text("Waiting for players and server...");
 
-        if (ImGui::Button("Leave Queue")) {
-            if(_httpClient.unqueuePlayer()) {
-                _state = Lobby;
-            } else {
-                std::cerr << "Failed to leave queue." << std::endl;
-            }
+    if (ImGui::Button("Leave Queue")) {
+        if(_httpClient.unqueuePlayer()) {
+            _state = Lobby;
+        } else {
+            std::cerr << "Failed to leave queue." << std::endl;
         }
-
-        ImGui::End();
     }
+
+    ImGui::End();
 }
 
 void Client::drawLobbyWindow() {
@@ -256,18 +260,22 @@ void Client::drawLobbyWindow() {
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always, ImVec2(0.0f, 0.0f)); // Place window in top-left corner
     ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y)); // Set a dynamic size corresponding to parent window size
 
-    if (ImGui::Begin("Lobby", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Begin("Lobby", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-        if (ImGui::Button("Queue")) {
-            if(_httpClient.queuePlayer()) _state = Queue;
-        }
-
-        if (ImGui::Button("Disconnect")) {
-            _state = WelcomeScreen;
-        }
-
-        ImGui::End();
+    if (ImGui::Button("Queue")) {
+        if(_httpClient.queuePlayer()) _state = Queue;
     }
+
+    if (ImGui::Button("Stats")) {
+        _stats = _httpClient.getStatsParsed();
+        _state = Stats;
+    }
+
+    if (ImGui::Button("Disconnect")) {
+        _state = WelcomeScreen;
+    }
+
+    ImGui::End();
 }
 
 void Client::drawLoginWindow() {
@@ -275,65 +283,64 @@ void Client::drawLoginWindow() {
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always, ImVec2(0.0f, 0.0f)); // Place window in top-left corner
     ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y)); // Set a dynamic size corresponding to parent window size
 
-    if (ImGui::Begin("Welcome", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        static char usernameLogin[64] = "";
-        static char passwordLogin[64] = "";
+    ImGui::Begin("Welcome", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    static char usernameLogin[64] = "";
+    static char passwordLogin[64] = "";
 
-        if (ImGui::RadioButton("Login", connectTypeOption == 0))
-        {
-            connectTypeOption = 0;
-            _loginProblem = false;
-        }
-
-        if (ImGui::RadioButton("Register", connectTypeOption == 1))
-        {
-            connectTypeOption = 1;
-            _loginProblem = false;
-        }
-
-        if (ImGui::InputText("Username", usernameLogin, IM_ARRAYSIZE(usernameLogin), ImGuiInputTextFlags_None)) {
-            // You can add additional logic here for handling username input
-        }
-        if (ImGui::InputText("Password", passwordLogin, IM_ARRAYSIZE(passwordLogin), ImGuiInputTextFlags_Password)) {
-            // You can add additional logic here for handling password input
-        }
-
-        if (ImGui::Button("Connect")) {
-            if (connectTypeOption == 0) //Login mode
-            {
-                if (_httpClient.login(usernameLogin, passwordLogin)) {
-                    _state = Lobby;
-                    _username = usernameLogin;
-                    std::memset(usernameLogin, 0, sizeof(usernameLogin));
-                    std::memset(passwordLogin, 0, sizeof(passwordLogin));
-                    _loginProblem = false;
-                } else {
-                    _loginProblem = true;
-                }
-            }
-            else //Register mode
-            {
-                if (_httpClient.registerUser(usernameLogin, passwordLogin)) {
-                    _state = Lobby;
-                    std::memset(usernameLogin, 0, sizeof(usernameLogin));
-                    std::memset(passwordLogin, 0, sizeof(passwordLogin));
-                    _loginProblem = false;
-                } else {
-                    _loginProblem = true;
-                }
-            }
-        }
-
-        if (_loginProblem) {
-            if (connectTypeOption == 0) {
-                ImGui::Text("Username or password is incorrect.");
-            } else {
-                ImGui::Text("Username is already taken.");
-            }
-        }
-
-        ImGui::End();
+    if (ImGui::RadioButton("Login", connectTypeOption == 0))
+    {
+        connectTypeOption = 0;
+        _loginProblem = false;
     }
+
+    if (ImGui::RadioButton("Register", connectTypeOption == 1))
+    {
+        connectTypeOption = 1;
+        _loginProblem = false;
+    }
+
+    if (ImGui::InputText("Username", usernameLogin, IM_ARRAYSIZE(usernameLogin), ImGuiInputTextFlags_None)) {
+        // You can add additional logic here for handling username input
+    }
+    if (ImGui::InputText("Password", passwordLogin, IM_ARRAYSIZE(passwordLogin), ImGuiInputTextFlags_Password)) {
+        // You can add additional logic here for handling password input
+    }
+
+    if (ImGui::Button("Connect")) {
+        if (connectTypeOption == 0) //Login mode
+        {
+            if (_httpClient.login(usernameLogin, passwordLogin)) {
+                _state = Lobby;
+                _username = usernameLogin;
+                std::memset(usernameLogin, 0, sizeof(usernameLogin));
+                std::memset(passwordLogin, 0, sizeof(passwordLogin));
+                _loginProblem = false;
+            } else {
+                _loginProblem = true;
+            }
+        }
+        else //Register mode
+        {
+            if (_httpClient.registerUser(usernameLogin, passwordLogin)) {
+                _state = Lobby;
+                _username = usernameLogin;
+                std::memset(usernameLogin, 0, sizeof(usernameLogin));
+                std::memset(passwordLogin, 0, sizeof(passwordLogin));
+                _loginProblem = false;
+            } else {
+                _loginProblem = true;
+            }
+        }
+    }
+
+    if (_loginProblem) {
+        if (connectTypeOption == 0) {
+            ImGui::Text("Username or password is incorrect.");
+        } else {
+            ImGui::Text("Username is already taken.");
+        }
+    }
+    ImGui::End();
 }
 
 void Client::drawEndGameWindow() {
@@ -341,28 +348,43 @@ void Client::drawEndGameWindow() {
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always, ImVec2(0.0f, 0.0f)); // Place window in top-left corner
     ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y)); // Set a dynamic size corresponding to parent window size
 
-    if (ImGui::Begin("End of the game !", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        std::vector<Player*> sortedPlayers(_players.begin(), _players.end());
+    ImGui::Begin("Game ended", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    std::vector<Player*> sortedPlayers(_players.begin(), _players.end());
 
-        std::sort(sortedPlayers.begin(), sortedPlayers.end(), [](Player* a, Player* b) {
-            return a->_score > b->_score;
-        });
+    std::sort(sortedPlayers.begin(), sortedPlayers.end(), [](Player* a, Player* b) {
+        return a->_score > b->_score;
+    });
 
-        for (size_t i = 0; i < sortedPlayers.size(); ++i) {
-            if (i==0) {
-                ImGui::Text("1er - %s with %d", sortedPlayers[i]->_name.c_str(), sortedPlayers[i]->_score);
-            }
-            else {
-                ImGui::Text("%deme - %s with %d", i, sortedPlayers[i]->_name.c_str(), sortedPlayers[i]->_score);
-            }
-        }
-
-        if (ImGui::Button("Return to menu")) {
-            _state = Lobby;
-        }
-
-        ImGui::End();
+    for (size_t i = 0; i < sortedPlayers.size(); ++i) {
+        ImGui::Text("%d - %s with %d cubes pushed.", i+1, sortedPlayers[i]->_name.c_str(), sortedPlayers[i]->_score);
     }
+
+    if (ImGui::Button("Return to menu")) {
+        _state = Lobby;
+    }
+
+    ImGui::End();
+}
+
+void Client::drawStatsWindow() {
+    ImVec2 windowSize = ImGui::GetMainViewport()->Size;
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always, ImVec2(0.0f, 0.0f)); // Place window in top-left corner
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y)); // Set a dynamic size corresponding to parent window size
+
+    ImGui::Begin("Stats", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+    ImGui::Text("%s", _username.c_str());
+
+    ImGui::Text("Games won: %d", _stats.gamesWon);
+    ImGui::Text("Games played: %d", _stats.gamesPlayed);
+    ImGui::Text("Cubes pushed: %d", _stats.cubesPushed);
+    ImGui::Text("Max cubes in one game: %d", _stats.maxCubesPushedInOneGame);
+
+    if (ImGui::Button("Lobby")) {
+        _state = Lobby;
+    }
+
+    ImGui::End();
 }
 
 void Client::sendSnapshotACK(ENetPeer *peer) {

@@ -78,6 +78,45 @@ std::string HttpClient::getMatchStatus() {
     return response;
 }
 
+PlayerStats HttpClient::getStatsParsed() {
+    Headers headers = authorizedHeader();
+    std::string response = get("/Stats", headers);
+
+    PlayerStats stats{0, 0, 0, 0};
+
+    if (response.empty()) {
+        std::cerr << "Failed to get stats.\n";
+        return stats;
+    }
+
+    try {
+        auto jsonData = nlohmann::json::parse(response);
+        stats.gamesWon = jsonData["gamesWon"].get<int>();
+        stats.gamesPlayed = jsonData["gamesPlayed"].get<int>();
+        stats.cubesPushed = jsonData["cubesPushed"].get<int>();
+        stats.maxCubesPushedInOneGame = jsonData["maxCubesPushedInOneGame"].get<int>();
+    } catch (const std::exception& e) {
+        std::cerr << "Error parsing stats JSON: " << e.what() << "\n";
+    }
+
+    return stats;
+}
+
+bool HttpClient::setStats(const std::string& username, PlayerStats stats) {
+    json payload = {
+        {"gamesWon", stats.gamesWon},
+        { "gamesPlayed", stats.gamesPlayed},
+        {"cubesPushed", stats.cubesPushed},
+        {"maxCubesPushedInOneGame", stats.maxCubesPushedInOneGame}
+    };
+
+    Headers headers = authorizedHeader();  // assuming the endpoint requires auth
+    std::string url = "/Stats/" + username;
+
+    std::string response = post(url, payload.dump(), headers);
+    return !response.empty();
+}
+
 bool HttpClient::registerServerMatchmaking(const std::string& ip) {
     Headers headers = authorizedHeader();  // optional
     std::string url = "/Matchmaking/register?ip=" + ip;
@@ -90,6 +129,14 @@ bool HttpClient::unregisterServerMatchmaking(const std::string& ip) {
     std::string url = "/Matchmaking/unregister?ip=" + ip;
     std::string response = post(url, "", headers);
     return !response.empty();
+}
+
+bool HttpClient::removePlayerFromMatch(const std::string& username) {
+    Headers headers = authorizedHeader();  // If token-based auth is used
+    std::string url = "/Matchmaking/match/" + username;
+
+    std::string response = delete_(url, headers);
+    return !response.empty();  // Consider returning true only if deletion succeeded and response is not empty
 }
 
 std::string HttpClient::get(const std::string& url, const Headers& headers) {
@@ -121,5 +168,21 @@ std::string HttpClient::post(const std::string& url, const std::string& body, co
     }
 
     std::cerr << "POST request failed. HTTP code: " << (res ? res->status : 0) << "\n";
+    return {};
+}
+
+std::string HttpClient::delete_(const std::string& url, const Headers& headers) {
+    httplib::Client cli(_baseUrl, PORT);
+    httplib::Headers reqHeaders;
+    for (const auto& [key, value] : headers) {
+        reqHeaders.emplace(key, value);
+    }
+
+    auto res = cli.Delete(url.c_str(), reqHeaders);
+    if (res && res->status >= 200 && res->status < 300) {
+        return res->body;
+    }
+
+    std::cerr << "DELETE request failed. HTTP code: " << (res ? res->status : 0) << "\n";
     return {};
 }

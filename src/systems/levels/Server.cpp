@@ -55,8 +55,8 @@ Server::Server(const Arguments &arguments): Engine(arguments) {
 
     char ip[ENET_ADDRESS_MAX_LENGTH]; // 16 bytes is enough for IPv4
     if (enet_address_get_host_ip(&_server->address, ip, sizeof(ip)) == 0) {
-        std::cout << std::string(ip) << std::endl;
-        if(!_httpClient.registerServerMatchmaking(std::string(ip))) {
+        _ip = std::string(ip);
+        if(!_httpClient.registerServerMatchmaking(_ip)) {
             std::cerr << "Failed to register server." << std::endl;
             return;
         }
@@ -68,14 +68,7 @@ Server::Server(const Arguments &arguments): Engine(arguments) {
 }
 
 Server::~Server() {
-    char ip[ENET_ADDRESS_MAX_LENGTH]; // 16 bytes is enough for IPv4
-    if (enet_address_get_host_ip(&_server->address, ip, sizeof(ip)) == 0) {
-        if(!_httpClient.unregisterServerMatchmaking(std::string(ip))) {
-            std::cerr << "Failed to unregister server." << std::endl;
-            return;
-        }
-    }
-    else {
+    if(!_httpClient.unregisterServerMatchmaking(_ip)) {
         std::cerr << "Failed to unregister server." << std::endl;
         return;
     }
@@ -115,7 +108,7 @@ void Server::tickEvent() {
     cleanWorld();
     handleCollision();
     networkUpdate();
-    if (somebodyHasWin()) {
+    if (somebodyHasWin() && !_gameEnded) {
         sendEndGame();
     }
     // Simulation physique
@@ -459,9 +452,32 @@ void Server::sendEndGame() {
         ENET_PACKET_FLAG_RELIABLE
     );
 
+    std::vector<Player*> sortedPlayers(_players.begin(), _players.end());
+
+    std::sort(sortedPlayers.begin(), sortedPlayers.end(), [](Player* a, Player* b) {
+        return a->_score > b->_score;
+    });
+
     for (auto player : _players) {
         if (player) {
             enet_peer_send(player->_peer, 1, packet);
+
+            PlayerStats playerStats;
+            if (player == sortedPlayers[0]) {
+                playerStats.gamesWon = 1;
+            } else {
+                playerStats.gamesWon = 0;
+            }
+            playerStats.gamesPlayed = 1;
+            playerStats.cubesPushed = player->_score;
+            playerStats.maxCubesPushedInOneGame = player->_score;
+
+            _httpClient.setStats(player->_name, playerStats);
+            _httpClient.removePlayerFromMatch(player->_name);
         }
     }
+
+    _httpClient.registerServerMatchmaking(_ip);
+
+    _gameEnded = true;
 }

@@ -10,6 +10,14 @@
 #include <string>
 #include <map>
 
+
+struct PlayerStats {
+    int gamesWon = 0;
+    int gamesPlayed = 0;
+    int cubesPushed = 0;
+    int maxCubesPushedInOneGame = 0;
+};
+
 class HttpClient {
 public:
     using Headers = std::map<std::string, std::string>;
@@ -21,10 +29,14 @@ public:
     std::string getMatchStatus();
     bool registerServerMatchmaking(const std::string& ip);
     bool unregisterServerMatchmaking(const std::string& ip);
+    PlayerStats getStatsParsed();
+    bool setStats(const std::string& username, PlayerStats stats);
+    bool removePlayerFromMatch(const std::string& username);
 
 private:
     std::string get(const std::string& url, const Headers& headers = {});
     std::string post(const std::string& url, const std::string& body, const Headers& headers = {});
+    std::string delete_(const std::string& url, const Headers& headers);
 
     std::string _baseUrl = BASE_URL;
     std::string _token;

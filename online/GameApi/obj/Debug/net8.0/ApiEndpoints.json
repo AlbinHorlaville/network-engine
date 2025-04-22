@@ -43,6 +43,22 @@
   },
   {
     "ContainingType": "GameApi.Controllers.MatchmakingController",
+    "Method": "RemovePlayerFromMatch",
+    "RelativePath": "Matchmaking/match/{username}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "username",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GameApi.Controllers.MatchmakingController",
     "Method": "QueuePlayer",
     "RelativePath": "Matchmaking/queue",
     "HttpMethod": "POST",
