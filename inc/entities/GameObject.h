@@ -58,7 +58,7 @@ public:
     ~GameObject() {
         delete _rigidBody;
         _app = nullptr;
-        delete _drawable;
+        _drawable = nullptr;
     }
 
     virtual void setMass(float mass) = 0;

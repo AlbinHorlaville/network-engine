@@ -89,6 +89,7 @@ class Engine: public Platform::Application, public Serializable {
     void scrollEvent(ScrollEvent& event) override;
     void pointerReleaseEvent(PointerEvent& event) override;
     void pointerMoveEvent(PointerMoveEvent& event) override;
+    virtual void reset();
 
     GL::Mesh _box{NoCreate}, _sphere{NoCreate};
     GL::Buffer _boxInstanceBuffer{NoCreate}, _sphereInstanceBuffer{NoCreate};

@@ -57,6 +57,7 @@ class Server : public Engine {
         void initENet6();
         void serialize(std::ostream &ostr) const override;
         void unserialize(std::istream &istr) override;
+        void reset() override;
 };
 
 

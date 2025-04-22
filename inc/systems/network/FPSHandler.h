@@ -14,6 +14,9 @@ private:
 public:
     void init() {
         _lastFrameTime = std::chrono::steady_clock::now();
+        _frameCount = 0;
+        _accumulatedTime = 0.0f;
+        _fps = 0;
     }
 
     void update() {

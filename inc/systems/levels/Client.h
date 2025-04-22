@@ -67,6 +67,7 @@ class Client : public Engine {
         void drawQueueWindow();
         void drawEndGameWindow();
         void drawStatsWindow();
+        void reset() override;
 };
 
 

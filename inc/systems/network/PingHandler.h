@@ -15,6 +15,10 @@ private:
 public:
     void init() {
         _lastFrameTime = std::chrono::steady_clock::now();
+        _pingSum = 0;
+        _nbPings = 0;
+        _accumulatedTime = 0.0f;
+        _pingAverage = 0.0f;
     }
 
     void update(std::uint64_t ping, std::uint64_t pong) {

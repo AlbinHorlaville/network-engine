@@ -157,6 +157,28 @@
         }
       }
     },
+    "/Matchmaking/match/{username}": {
+      "delete": {
+        "tags": [
+          "Matchmaking"
+        ],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/Stats": {
       "get": {
         "tags": [
@@ -231,6 +253,10 @@
         "type": "object",
         "properties": {
           "gamesWon": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "gamesPlayed": {
             "type": "integer",
             "format": "int32"
           },

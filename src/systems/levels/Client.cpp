@@ -21,8 +21,6 @@ Client::Client(const Arguments &arguments): Engine(arguments) {
     ->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
     .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 99.0f))
     .setViewport(GL::defaultFramebuffer.viewport().size());
-    _inputs = new Input(Input::None);
-    _pingHandler.init();
 }
 
 Client::~Client() {
@@ -103,6 +101,8 @@ void Client::initENet6() {
         enet_peer_reset(_peer);
         enet_host_destroy(_client);
     }
+    _pingHandler.init();
+    _inputs = new Input(Input::None);
 }
 
 void Client::tickEvent() {
@@ -361,6 +361,7 @@ void Client::drawEndGameWindow() {
 
     if (ImGui::Button("Return to menu")) {
         _state = Lobby;
+        reset();
     }
 
     ImGui::End();
@@ -600,3 +601,12 @@ void Client::sendUsername(ENetPeer *peer) {
 
     enet_peer_send(peer, 1, packet);
 }
+
+void Client::reset() {
+    Engine::reset();
+    _id = 5;
+    delete _peer;
+    _frame = 0;
+    delete _inputs;
+}
+

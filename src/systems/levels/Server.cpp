@@ -110,6 +110,7 @@ void Server::tickEvent() {
     networkUpdate();
     if (somebodyHasWin() && !_gameEnded) {
         sendEndGame();
+        reset();
     }
     // Simulation physique
     _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
@@ -209,6 +210,9 @@ void Server::cleanWorld() {
 }
 
 void Server::networkUpdate() {
+    if (_gameEnded) {
+        return;
+    }
     ENetEvent event;
     while (enet_host_service(_server, &event, 1) > 0) {
         switch (event.type) {
@@ -272,11 +276,13 @@ void Server::handleReceive(const ENetEvent &event) {
     std::istringstream iss(std::string(payload, payloadSize), std::ios::binary);
     PackageType type;
     iss.read(reinterpret_cast<char*>(&type), sizeof(type));
-    int tipe = type;
     switch (type) {
         case MSG_USERNAME : {
             uint8_t id_client;
             iss.read(reinterpret_cast<char*>(&id_client), sizeof(uint8_t));
+            if (_players[id_client] == nullptr) {
+                break;
+            }
             size_t length;
             iss.read(reinterpret_cast<char*>(&length), sizeof(size_t));
             _players[id_client]->_name.resize(length);
@@ -286,6 +292,9 @@ void Server::handleReceive(const ENetEvent &event) {
         case MSG_WORLD_ACK: {
             uint8_t id_client;
             iss.read(reinterpret_cast<char*>(&id_client), sizeof(uint8_t));
+            if (_players[id_client] == nullptr) {
+                break;
+            }
             uint64_t frame;
             iss.read(reinterpret_cast<char*>(&frame), sizeof(uint64_t));
             _players[id_client]->_currentFrame = frame;
@@ -294,7 +303,9 @@ void Server::handleReceive(const ENetEvent &event) {
         case MSG_INPUTS: {
             uint8_t id_client;
             iss.read(reinterpret_cast<char*>(&id_client), sizeof(uint8_t));
-
+            if (_players[id_client] == nullptr) {
+                break;
+            }
             uint16_t fps;
             iss.read(reinterpret_cast<char*>(&fps), sizeof(uint16_t));
             _players[id_client]->_fps = fps;
@@ -480,4 +491,42 @@ void Server::sendEndGame() {
     _httpClient.registerServerMatchmaking(_ip);
 
     _gameEnded = true;
+}
+
+void Server::reset() {
+    Engine::reset();
+    _destroyedObjects.clear();
+    _objects.clear();
+    _gameEnded = false;
+    _frame = 0;
+    snapshotTimer = 0.0f;
+    /* Camera setup */
+    (*(_cameraRig = new Object3D{&_scene}))
+        .translate(Vector3::yAxis(3.0f))
+        .rotateY(40.0_degf);
+    (*(_cameraObject = new Object3D{_cameraRig}))
+        .translate(Vector3::zAxis(20.0f))
+        .rotateX(-25.0_degf);
+    (_camera = new SceneGraph::Camera3D(*_cameraObject))
+        ->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
+        .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 99.0f))
+        .setViewport(GL::defaultFramebuffer.viewport().size());
+
+    initSimulation();
+
+    auto *ground = new Cube(this, "Floor", &_scene, {10.0f, 0.5f, 10.0f}, 0.f, 0xffffff_rgbf);
+    addObject(ground);
+
+    /* Create boxes with random colors */
+    for (Int i = 0; i != 7; ++i) {
+        for (Int j = 0; j != 7; ++j) {
+            for (Int k = 0; k != 7; ++k) {
+                Color3 color = Color3(1.0f, 1.0f, 1.0f);
+                auto *o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 3.f, color);
+                o->_rigidBody->translate({i - 2.0f, j + 2.0f, k - 2.0f});
+                o->_rigidBody->syncPose();
+                addObject(o);
+            }
+        }
+    }
 }
