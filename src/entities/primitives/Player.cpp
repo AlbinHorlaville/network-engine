@@ -85,8 +85,6 @@ void Player::updateBulletFromData() {
     }
     _rigidBody->rigidBody().getMotionState()->setWorldTransform(btTransform(btQuaternion(_rotation), _location));
 
-    _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
-    _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
     _rigidBody->rigidBody().setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT| btCollisionObject::CF_NO_CONTACT_RESPONSE);
     _rigidBody->rigidBody().setActivationState(DISABLE_DEACTIVATION);
 }

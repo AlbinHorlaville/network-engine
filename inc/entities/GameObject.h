@@ -14,6 +14,7 @@
 #include "Magnum/SceneGraph/Drawable.h"
 #include "systems/levels/Engine.h"
 #include "../systems/network/Serializable.h"
+#include "../systems/network/Interpolation.h"
 
 struct InstanceData;
 
@@ -45,14 +46,14 @@ public:
     std::string _name;
     Object3D* _parent = nullptr;
     btVector3 _location;
-    btVector3 _linearVelocity;
-    btVector3 _angularVelocity;
     btQuaternion _rotation = btQuaternion(0, 0, 0, 1);
     float _mass;
     RigidBody* _rigidBody = nullptr;
     Color3 _color;
     ColoredDrawable* _drawable = nullptr;
     uint8_t _owner = 5; // Who (a player) has hit first this object
+    EntityInterpolation _entityStates;
+    uint64_t _serverTime; // Update in Client::unserialise to be use in storeStateForInterpolation()
 
     GameObject(std::string name, float m) : _name(std::move(name)), _mass(m), _rigidBody(nullptr) {}
     ~GameObject() {
@@ -67,6 +68,7 @@ public:
     virtual void setColor(const Color3& color) = 0;
     void serialize(std::ostream &ostr) const override = 0;
     void unserialize(std::istream &istr) override = 0;
+    void storeStateForInterpolation(const btVector3& position, const btQuaternion& rotation, uint64_t serverTime);
 
 protected:
     Engine* _app;

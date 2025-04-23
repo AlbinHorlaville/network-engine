@@ -117,8 +117,6 @@ void Cube::updateBulletFromData() {
     }
     _rigidBody->rigidBody().getMotionState()->setWorldTransform(btTransform(btQuaternion(_rotation), _location));
 
-    _rigidBody->rigidBody().setLinearVelocity(_linearVelocity);
-    _rigidBody->rigidBody().setAngularVelocity(_angularVelocity);
     _rigidBody->rigidBody().setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
     _rigidBody->rigidBody().setActivationState(DISABLE_DEACTIVATION);
 

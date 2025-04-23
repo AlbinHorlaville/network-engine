@@ -25,7 +25,6 @@ Client::Client(const Arguments &arguments): Engine(arguments) {
 
 Client::~Client() {
     _httpClient.unqueuePlayer();
-    Engine::~Engine();
     enet_peer_reset(_peer);
     enet_host_destroy(_client);
 }
@@ -112,9 +111,10 @@ void Client::tickEvent() {
         case (InGame) :
             if (_client) {
                 networkUpdate();
+                interpolate();
                 // Simulation physique
                 _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
-            sendInputs();
+                sendInputs();
 
                 // Avance la timeline et redessine
                 _timeline.nextFrame();
@@ -151,8 +151,8 @@ void Client::networkUpdate() {
             }
             default: break;
         }
+        enet_packet_destroy(event.packet);
     }
-    enet_packet_destroy(event.packet);
 }
 
 void Client::handleReceive(const ENetEvent &event) {
@@ -177,8 +177,7 @@ void Client::handleReceive(const ENetEvent &event) {
             uint64_t sentTime;
             iss.read(reinterpret_cast<char*>(&sentTime), sizeof(sentTime));
 
-            uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now().time_since_epoch()).count();
+            uint64_t now = now();
             _pingHandler.update(sentTime, now);
             break;
         }
@@ -479,7 +478,7 @@ void Client::sendInputs() {
     uint8_t ping = _pingHandler.get();
     oss.write(reinterpret_cast<const char*>(&ping), sizeof(uint8_t));
     // Stocke le temps courant (en micro ou millisecondes)
-    uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    uint64_t now = now();
     oss.write(reinterpret_cast<const char*>(&now), sizeof(uint64_t));
     oss.write(reinterpret_cast<const char*>(_inputs), sizeof(uint8_t));
 
@@ -550,6 +549,11 @@ void Client::textInputEvent(TextInputEvent& event) {
 void Client::serialize(std::ostream&) const {}
 
 void Client::unserialize(std::istream &istr) {
+    // Get timeServer
+    uint64_t serverTime;
+    istr.read(reinterpret_cast<char*>(&serverTime), sizeof(uint64_t));
+    _currentTimeServer = serverTime + _pingHandler.get() / 2; // Le temps actuel du serveur c'est le temps auquel il a émit le paquet plus le temps de trajet
+
     // Unserialize frame number
     istr.read(reinterpret_cast<char*>(&_frame), sizeof(uint64_t));
 
@@ -560,6 +564,7 @@ void Client::unserialize(std::istream &istr) {
         if (_players[i] == nullptr) {
             _players[i] = new Player(nullptr, this, &_scene);
         }
+        _players[i]->_serverTime = serverTime;
         _players[i]->unserialize(istr);
         _players[i]->updateBulletFromData();
 
@@ -599,6 +604,7 @@ void Client::unserialize(std::istream &istr) {
         if (obj) { // L'objet est trouvé
             ObjectType type;
             istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
+            obj->_serverTime = serverTime;
             obj->unserialize(istr);
             obj->updateBulletFromData();
         }
@@ -608,6 +614,7 @@ void Client::unserialize(std::istream &istr) {
             switch(type) {
                 case CUBE: {
                     auto cube = new Cube(this, &_scene);
+                    cube->_serverTime = serverTime;
                     cube->unserialize(istr);
                     cube->updateBulletFromData();
                     addObject(cube, id);
@@ -615,6 +622,7 @@ void Client::unserialize(std::istream &istr) {
                 }
                 case SPHERE: {
                     auto* sphere = new Sphere(this, &_scene);
+                    sphere->_serverTime = serverTime;
                     sphere->unserialize(istr);
                     sphere->updateBulletFromData();
                     addObject(sphere, id);
@@ -660,6 +668,38 @@ void Client::sendUsername(ENetPeer *peer) {
     enet_peer_send(peer, 1, packet);
 }
 
+uint64_t Client::now() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+void Client::interpolate() {
+    uint64_t renderTimestamp = _currentTimeServer - interpolationDelay;
+
+    for (auto& pair : _objects) {
+        auto& object = pair.second;
+        auto& history = pair.second->_entityStates.history;
+
+        // Trouver les deux états encadrant renderTimestamp
+        if (history.size() < 2) continue;
+
+        for (size_t i = 0; i < history.size() - 1; ++i) {
+            const auto& stateA = history[i];
+            const auto& stateB = history[i + 1];
+
+            if (stateA.timestamp <= renderTimestamp && renderTimestamp <= stateB.timestamp) {
+                uint64_t t = (renderTimestamp - stateA.timestamp) / (stateB.timestamp - stateA.timestamp);
+                btVector3 interpPos = lerp(stateA.position, stateB.position, t);
+                btQuaternion interpRot = slerp(stateA.rotation, stateB.rotation, t);
+
+                // Appliquer à l'entité
+                object->_location = interpPos;
+                object->_rotation = interpRot;
+                object->updateBulletFromData();
+                break;
+            }
+        }
+    }
+}
 void Client::reset() {
     Engine::reset();
     _id = 5;

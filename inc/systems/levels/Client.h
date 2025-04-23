@@ -8,6 +8,7 @@
 #include "enet6/enet.h"
 #include "entities/primitives/Player.h"
 #include "Engine.h"
+#include "../../../cmake-build-debug/_deps/bullet-src/examples/ThirdPartyLibs/clsocket/src/Host.h"
 #include "systems/network/PackageType.h"
 #include "systems/network/PingHandler.h"
 #include "systems/online/HttpClient.h"
@@ -46,6 +47,8 @@ class Client : public Engine {
         PlayerStats _stats;
         std::map<std::string, std::string> _achievements;
         std::map<std::string, std::string> _unlockedThisGame;
+        constexpr double interpolationDelay = 0.1; // 100 ms
+        uint64_t _currentTimeServer;
 
     public:
         void tickEvent() override;
@@ -71,6 +74,8 @@ class Client : public Engine {
         void drawEndGameWindow();
         void drawStatsWindow();
         void drawAchievementsWindow();
+        uint64_t now();
+        void interpolate();
         void reset() override;
 };
 

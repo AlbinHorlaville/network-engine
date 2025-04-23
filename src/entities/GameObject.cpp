@@ -31,8 +31,6 @@ void GameObject::updateDataFromBullet() {
     btTransform transform =  _rigidBody->_bRigidBody->getWorldTransform();
     _location = transform.getOrigin();
     _rotation = transform.getRotation();
-    _linearVelocity = _rigidBody->_bRigidBody->getLinearVelocity();
-    _angularVelocity = _rigidBody->_bRigidBody->getAngularVelocity();
 }
 
 void GameObject::serialize(std::ostream &ostr) const {
@@ -62,16 +60,6 @@ void GameObject::serialize(std::ostream &ostr) const {
     ostr.write(reinterpret_cast<const char*>(&_rotation.z()), sizeof(float));
     ostr.write(reinterpret_cast<const char*>(&_rotation.w()), sizeof(float));
 
-    // Serialize linear velocity
-    ostr.write(reinterpret_cast<const char*>(&_linearVelocity.x()), sizeof(float));
-    ostr.write(reinterpret_cast<const char*>(&_linearVelocity.y()), sizeof(float));
-    ostr.write(reinterpret_cast<const char*>(&_linearVelocity.z()), sizeof(float));
-
-    // Serialize angular velocity
-    ostr.write(reinterpret_cast<const char*>(&_angularVelocity.x()), sizeof(float));
-    ostr.write(reinterpret_cast<const char*>(&_angularVelocity.y()), sizeof(float));
-    ostr.write(reinterpret_cast<const char*>(&_angularVelocity.z()), sizeof(float));
-
     // Serialize Mass
     ostr.write(reinterpret_cast<const char*>(&_mass), sizeof(float));
 
@@ -97,7 +85,7 @@ void GameObject::unserialize(std::istream &istr) {
     istr.read(reinterpret_cast<char*>(&x), sizeof(float));
     istr.read(reinterpret_cast<char*>(&y), sizeof(float));
     istr.read(reinterpret_cast<char*>(&z), sizeof(float));
-    _location = btVector3(x, y, z);
+
 
     // Unserialize Rotation
     float w;
@@ -105,19 +93,10 @@ void GameObject::unserialize(std::istream &istr) {
     istr.read(reinterpret_cast<char*>(&y), sizeof(float));
     istr.read(reinterpret_cast<char*>(&z), sizeof(float));
     istr.read(reinterpret_cast<char*>(&w), sizeof(float));
-    _rotation = btQuaternion(x, y, z, w);
 
-    // Unserialize linear velocity
-    istr.read(reinterpret_cast<char*>(&x), sizeof(float));
-    istr.read(reinterpret_cast<char*>(&y), sizeof(float));
-    istr.read(reinterpret_cast<char*>(&z), sizeof(float));
-    _linearVelocity = btVector3(x, y, z);
-
-    // Unserialize angular velocity
-    istr.read(reinterpret_cast<char*>(&x), sizeof(float));
-    istr.read(reinterpret_cast<char*>(&y), sizeof(float));
-    istr.read(reinterpret_cast<char*>(&z), sizeof(float));
-    _angularVelocity = btVector3(x, y, z);
+    btVector3 location = btVector3(x, y, z);
+    btQuaternion rotation = btQuaternion(x, y, z, w);
+    storeStateForInterpolation(location, rotation, _serverTime);
 
     // Unserialize Mass
     istr.read(reinterpret_cast<char*>(&_mass), sizeof(float));
@@ -127,4 +106,15 @@ void GameObject::unserialize(std::istream &istr) {
     istr.read(reinterpret_cast<char*>(&y), sizeof(float));
     istr.read(reinterpret_cast<char*>(&z), sizeof(float));
     _color = Color3(x, y, z);
+}
+
+void GameObject::storeStateForInterpolation(const btVector3& position, const btQuaternion& rotation, uint64_t serverTime) {
+    EntityState state{serverTime, position, rotation};
+    _entityStates.history.push_back(state);
+
+    // On garde un historique raisonnable (2 secondes)
+    auto& history = _entityStates.history;
+    while (!history.empty() && serverTime - history.front().timestamp > 2.0) {
+        history.pop_front();
+    }
 }
