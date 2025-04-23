@@ -47,7 +47,7 @@ class Client : public Engine {
         PlayerStats _stats;
         std::map<std::string, std::string> _achievements;
         std::map<std::string, std::string> _unlockedThisGame;
-        constexpr double interpolationDelay = 0.1; // 100 ms
+        double interpolationDelay = 0.1; // 100 ms
         uint64_t _currentTimeServer;
 
     public:
@@ -74,7 +74,7 @@ class Client : public Engine {
         void drawEndGameWindow();
         void drawStatsWindow();
         void drawAchievementsWindow();
-        uint64_t now();
+        uint64_t getTime();
         void interpolate();
         void reset() override;
 };

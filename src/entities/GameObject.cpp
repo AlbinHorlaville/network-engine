@@ -114,7 +114,7 @@ void GameObject::storeStateForInterpolation(const btVector3& position, const btQ
 
     // On garde un historique raisonnable (2 secondes)
     auto& history = _entityStates.history;
-    while (!history.empty() && serverTime - history.front().timestamp > 2.0) {
+    while (!history.empty() && serverTime - history.front().timestamp > 2000) {
         history.pop_front();
     }
 }

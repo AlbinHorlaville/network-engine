@@ -177,7 +177,7 @@ void Client::handleReceive(const ENetEvent &event) {
             uint64_t sentTime;
             iss.read(reinterpret_cast<char*>(&sentTime), sizeof(sentTime));
 
-            uint64_t now = now();
+            uint64_t now = getTime();
             _pingHandler.update(sentTime, now);
             break;
         }
@@ -478,7 +478,7 @@ void Client::sendInputs() {
     uint8_t ping = _pingHandler.get();
     oss.write(reinterpret_cast<const char*>(&ping), sizeof(uint8_t));
     // Stocke le temps courant (en micro ou millisecondes)
-    uint64_t now = now();
+    uint64_t now = getTime();
     oss.write(reinterpret_cast<const char*>(&now), sizeof(uint64_t));
     oss.write(reinterpret_cast<const char*>(_inputs), sizeof(uint8_t));
 
@@ -668,7 +668,7 @@ void Client::sendUsername(ENetPeer *peer) {
     enet_peer_send(peer, 1, packet);
 }
 
-uint64_t Client::now() {
+uint64_t Client::getTime() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 

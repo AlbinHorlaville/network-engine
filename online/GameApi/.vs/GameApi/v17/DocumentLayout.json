@@ -70,8 +70,7 @@
               "RelativeToolTip": "Controllers\\AchievementController.cs",
               "ViewState": "AgIAAAYAAAAAAAAAAAAAABgAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-07T20:17:18.441Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-07T20:17:18.441Z"
             },
             {
               "$type": "Document",
@@ -83,8 +82,7 @@
               "RelativeToolTip": "Program.cs",
               "ViewState": "AgIAACEAAAAAAAAAAAAAAC0AAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-07T20:02:16.721Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-07T20:02:16.721Z"
             },
             {
               "$type": "Document",
@@ -96,8 +94,7 @@
               "RelativeToolTip": "Services\\MatchMakingWorker.cs",
               "ViewState": "AgIAAA8AAAAAAAAAAAA1wDwAAABQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-18T14:01:36.187Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-18T14:01:36.187Z"
             },
             {
               "$type": "Document",
@@ -109,8 +106,7 @@
               "RelativeToolTip": "Services\\AuthService.cs",
               "ViewState": "AgIAAA8AAAAAAAAAAAAYwBEAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-08T16:29:15.207Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-08T16:29:15.207Z"
             },
             {
               "$type": "Document",
@@ -122,8 +118,7 @@
               "RelativeToolTip": "appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-04-08T16:44:56.72Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-08T16:44:56.72Z"
             },
             {
               "$type": "Document",
@@ -135,8 +130,7 @@
               "RelativeToolTip": "Services\\AchievementService.cs",
               "ViewState": "AgIAAB8AAAAAAAAAAAAmwDYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-08T16:17:48.955Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-08T16:17:48.955Z"
             },
             {
               "$type": "Document",
@@ -148,8 +142,7 @@
               "RelativeToolTip": "Services\\StatsService.cs",
               "ViewState": "AgIAAAgAAAAAAAAAAAAAwBQAAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-08T16:27:55.435Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-08T16:27:55.435Z"
             },
             {
               "$type": "Document",
@@ -161,8 +154,7 @@
               "RelativeToolTip": "Controllers\\MatchMakingController.cs",
               "ViewState": "AgIAADkAAAAAAAAAAAAowFMAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-07T20:19:05.132Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-07T20:19:05.132Z"
             },
             {
               "$type": "Document",
@@ -184,7 +176,7 @@
               "RelativeDocumentMoniker": "Services\\MatchMakingService.cs",
               "ToolTip": "C:\\Users\\orgor\\OneDrive\\Documents\\UQAC\\Rzo\\network-engine\\online\\GameApi\\Services\\MatchMakingService.cs",
               "RelativeToolTip": "Services\\MatchMakingService.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAADAAAABBAAAAAAAAAA==",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAuwDAAAABBAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-08T16:14:54.573Z",
               "EditorCaption": ""
@@ -199,8 +191,7 @@
               "RelativeToolTip": "Controllers\\StatsController.cs",
               "ViewState": "AgIAAAsAAAAAAAAAAAAAwB8AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-07T20:15:27.536Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-07T20:15:27.536Z"
             }
           ]
         }
