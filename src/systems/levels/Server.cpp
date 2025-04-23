@@ -373,9 +373,12 @@ void Server::sendSnapshot() {
 
     // Mettre le flag
     PackageType flag = MSG_WORLD_SYNC;
-    oss.write(reinterpret_cast<const char*>(&flag), sizeof(flag));
+    oss.write(reinterpret_cast<const char*>(&flag), sizeof(PackageType));
+    uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count();
+    oss.write(reinterpret_cast<const char*>(&now), sizeof(uint64_t));
 
-    serialize(oss); // Ton appel à serialize(std::ostream&)
+    serialize(oss);
 
     std::string data = oss.str();
     ENetPacket* packet = enet_packet_create(
