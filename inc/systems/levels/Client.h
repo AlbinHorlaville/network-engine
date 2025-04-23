@@ -72,6 +72,7 @@ class Client : public Engine {
         void drawStatsWindow();
         uint64_t now();
         void interpolate();
+        void reset() override;
 };
 
 

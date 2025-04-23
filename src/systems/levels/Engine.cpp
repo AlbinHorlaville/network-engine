@@ -44,7 +44,6 @@ Engine::~Engine() {
     delete _pProjectileManager;
     delete _camera;
     delete _cameraRig;
-    delete _cameraObject;
 }
 
 void Engine::initSimulation() {
@@ -236,7 +235,7 @@ void Engine::tickEvent() {
 void Engine::drawEvent() {
     GL::defaultFramebuffer.clear(GL::FramebufferClear::Color|GL::FramebufferClear::Depth);
     drawGraphics();
-    drawImGUI();
+    //drawImGUI();
     swapBuffers();
 }
 
@@ -272,4 +271,19 @@ void Engine::addObject(GameObject* object) {
 void Engine::addObject(GameObject* object, uint32_t id) {
     _objects[object->_name] = object;
     _linkingContext.Register(id, object);
+}
+
+void Engine::reset() {
+    for (auto player : _players) {
+        delete player;
+    }
+    _players[0] = nullptr;
+    _players[1] = nullptr;
+    _players[2] = nullptr;
+    _players[3] = nullptr;
+    delete _drawables;
+    delete _pWorld;
+    delete _pProjectileManager;
+    delete _camera;
+    delete _cameraRig;
 }
