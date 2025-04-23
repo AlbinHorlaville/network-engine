@@ -139,6 +139,27 @@ bool HttpClient::removePlayerFromMatch(const std::string& username) {
     return !response.empty();  // Consider returning true only if deletion succeeded and response is not empty
 }
 
+std::map<std::string, std::string> HttpClient::getDetailedAchievements() {
+    Headers headers = authorizedHeader(); // If token-based auth is used
+    std::string response = get("/Achievement/details", headers);
+    std::map<std::string, std::string> achievements;
+
+    if (!response.empty()) {
+        try {
+            auto json = nlohmann::json::parse(response);
+            for (auto it = json.begin(); it != json.end(); ++it) {
+                achievements[it.key()] = it.value().get<std::string>();
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Error parsing achievements JSON: " << e.what() << std::endl;
+        }
+    } else {
+        std::cerr << "Failed to get achievements or response is empty.\n";
+    }
+
+    return achievements;
+}
+
 std::string HttpClient::get(const std::string& url, const Headers& headers) {
     httplib::Client cli(_baseUrl, PORT);
     httplib::Headers reqHeaders;

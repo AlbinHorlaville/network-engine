@@ -184,6 +184,15 @@ void Client::handleReceive(const ENetEvent &event) {
         }
         case MSG_END_GAME: {
             _state = EndGame;
+
+            std::map<std::string, std::string> newAchievementsMap = _httpClient.getDetailedAchievements();
+            _unlockedThisGame.clear();
+
+            for (const auto& pair : newAchievementsMap) {
+                if (!_achievements.contains(pair.first)) {
+                    _unlockedThisGame[pair.first] = pair.second;
+                }
+            }
             break;
         }
         default: break;
@@ -220,6 +229,11 @@ void Client::drawEvent() {
         case (Stats) :
             _imgui.newFrame();
             drawStatsWindow();
+            endFrame();
+        break;
+        case(Achievements) :
+            _imgui.newFrame();
+            drawAchievementsWindow();
             endFrame();
         break;
         case (EndGame):
@@ -269,6 +283,11 @@ void Client::drawLobbyWindow() {
     if (ImGui::Button("Stats")) {
         _stats = _httpClient.getStatsParsed();
         _state = Stats;
+    }
+
+    if (ImGui::Button("Achievements")) {
+        _achievements = _httpClient.getDetailedAchievements();
+        _state = Achievements;
     }
 
     if (ImGui::Button("Disconnect")) {
@@ -359,7 +378,18 @@ void Client::drawEndGameWindow() {
         ImGui::Text("%d - %s with %d cubes pushed.", i+1, sortedPlayers[i]->_name.c_str(), sortedPlayers[i]->_score);
     }
 
-    if (ImGui::Button("Return to menu")) {
+    ImGui::Spacing();
+
+    ImGui::Text("Achievement(s) unlocked this game:");
+
+    int index = 1;
+    for (auto it = _unlockedThisGame.begin(); it != _unlockedThisGame.end(); ++it, ++index) {
+        ImGui::Text("Achievement %d", index);
+        ImGui::Text("%s", it->first.c_str());
+        ImGui::Text("%s", it->second.c_str());
+    }
+
+    if (ImGui::Button("Lobby")) {
         _state = Lobby;
         reset();
     }
@@ -380,6 +410,34 @@ void Client::drawStatsWindow() {
     ImGui::Text("Games played: %d", _stats.gamesPlayed);
     ImGui::Text("Cubes pushed: %d", _stats.cubesPushed);
     ImGui::Text("Max cubes in one game: %d", _stats.maxCubesPushedInOneGame);
+
+    if (ImGui::Button("Lobby")) {
+        _state = Lobby;
+    }
+
+    ImGui::End();
+}
+
+void Client::drawAchievementsWindow() {
+    ImVec2 windowSize = ImGui::GetMainViewport()->Size;
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always, ImVec2(0.0f, 0.0f)); // Place window in top-left corner
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x, windowSize.y)); // Set a dynamic size corresponding to parent window size
+
+    ImGui::Begin("Achievements", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+    ImGui::Text("%s", _username.c_str());
+
+    if (!_achievements.empty()) {
+        int index = 1;
+        for (auto it = _achievements.begin(); it != _achievements.end(); ++it, ++index) {
+            ImGui::Text("Achievement %d", index);
+            ImGui::Text("%s", it->first.c_str());
+            ImGui::Text("%s", it->second.c_str());
+        }
+        ImGui::Spacing();
+    } else {
+        ImGui::Text("No achievement unlocked yet...");
+    }
 
     if (ImGui::Button("Lobby")) {
         _state = Lobby;

@@ -32,6 +32,7 @@ public:
     PlayerStats getStatsParsed();
     bool setStats(const std::string& username, PlayerStats stats);
     bool removePlayerFromMatch(const std::string& username);
+    std::map<std::string, std::string> getDetailedAchievements();
 
 private:
     std::string get(const std::string& url, const Headers& headers = {});

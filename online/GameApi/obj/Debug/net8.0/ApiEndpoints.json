@@ -1,8 +1,8 @@
 [
   {
-    "ContainingType": "GameApi.Controllers.AchievementsController",
-    "Method": "Get",
-    "RelativePath": "Achievements",
+    "ContainingType": "GameApi.Controllers.AchievementController",
+    "Method": "GetDetailedAchievements",
+    "RelativePath": "Achievement/details",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,

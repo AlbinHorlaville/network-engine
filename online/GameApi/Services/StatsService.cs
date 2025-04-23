@@ -16,10 +16,12 @@ namespace GameApi.Services
     public class StatsService
     {
         private readonly IDatabase _db;
+        private readonly AchievementService _achievementService;
 
-        public StatsService(IConnectionMultiplexer redis)
+        public StatsService(IConnectionMultiplexer redis, AchievementService achievementService)
         {
             _db = redis.GetDatabase();
+            _achievementService = achievementService;
         }
 
         public async Task SetStatsAsync(string username, PlayerStats newStats)
@@ -64,6 +66,8 @@ namespace GameApi.Services
 
             var updatedJson = JsonSerializer.Serialize(updatedStats);
             await _db.HashSetAsync("stats", username, updatedJson);
+
+            await _achievementService.EvaluateAchievementsFromStatsAsync(username);
         }
 
         public async Task<PlayerStats?> GetStatsAsync(string username)

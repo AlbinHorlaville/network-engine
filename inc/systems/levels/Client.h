@@ -17,6 +17,7 @@ enum ClientState {
     Lobby,
     Queue,
     Stats,
+    Achievements,
     FoundMatch,
     InGame,
     EndGame
@@ -43,6 +44,8 @@ class Client : public Engine {
         std::string _currentServerIp;
         bool _loginProblem = false;
         PlayerStats _stats;
+        std::map<std::string, std::string> _achievements;
+        std::map<std::string, std::string> _unlockedThisGame;
 
     public:
         void tickEvent() override;
@@ -67,6 +70,7 @@ class Client : public Engine {
         void drawQueueWindow();
         void drawEndGameWindow();
         void drawStatsWindow();
+        void drawAchievementsWindow();
         void reset() override;
 };
 
