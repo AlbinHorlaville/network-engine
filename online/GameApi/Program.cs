@@ -77,6 +77,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(5187);
+});
+
 var app = builder.Build();
 
 // Create server user in Redis if it doesn't exist
