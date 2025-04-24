@@ -85,7 +85,7 @@ void GameObject::unserialize(std::istream &istr) {
     istr.read(reinterpret_cast<char*>(&x), sizeof(float));
     istr.read(reinterpret_cast<char*>(&y), sizeof(float));
     istr.read(reinterpret_cast<char*>(&z), sizeof(float));
-
+    btVector3 location = btVector3(x, y, z);
 
     // Unserialize Rotation
     float w;
@@ -93,8 +93,6 @@ void GameObject::unserialize(std::istream &istr) {
     istr.read(reinterpret_cast<char*>(&y), sizeof(float));
     istr.read(reinterpret_cast<char*>(&z), sizeof(float));
     istr.read(reinterpret_cast<char*>(&w), sizeof(float));
-
-    btVector3 location = btVector3(x, y, z);
     btQuaternion rotation = btQuaternion(x, y, z, w);
     storeStateForInterpolation(location, rotation, _serverTime);
 
@@ -114,7 +112,7 @@ void GameObject::storeStateForInterpolation(const btVector3& position, const btQ
 
     // On garde un historique raisonnable (2 secondes)
     auto& history = _entityStates.history;
-    while (!history.empty() && serverTime - history.front().timestamp > 2000) {
+    while (!history.empty() && serverTime - history.front().timestamp > 500) {
         history.pop_front();
     }
 }

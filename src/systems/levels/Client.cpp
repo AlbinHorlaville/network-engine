@@ -112,6 +112,7 @@ void Client::tickEvent() {
             if (_client) {
                 networkUpdate();
                 interpolate();
+                _currentTimeServer += _timeline.previousFrameDuration() * 1000;
                 // Simulation physique
                 _pWorld->_bWorld->stepSimulation(_timeline.previousFrameDuration(), 5);
                 sendInputs();
@@ -566,7 +567,7 @@ void Client::unserialize(std::istream &istr) {
         }
         _players[i]->_serverTime = serverTime;
         _players[i]->unserialize(istr);
-        _players[i]->updateBulletFromData();
+        //_players[i]->updateBulletFromData();
 
         if (i == _id) {
             Vector3 target = {0.0f, 3.0f, 0.0f};
@@ -606,7 +607,7 @@ void Client::unserialize(std::istream &istr) {
             istr.read(reinterpret_cast<char*>(&type), sizeof(ObjectType));
             obj->_serverTime = serverTime;
             obj->unserialize(istr);
-            obj->updateBulletFromData();
+            //obj->updateBulletFromData();
         }
         else { // L'objet doit être créé
             ObjectType type;
@@ -616,7 +617,7 @@ void Client::unserialize(std::istream &istr) {
                     auto cube = new Cube(this, &_scene);
                     cube->_serverTime = serverTime;
                     cube->unserialize(istr);
-                    cube->updateBulletFromData();
+                    //cube->updateBulletFromData();
                     addObject(cube, id);
                     break;
                 }
@@ -624,7 +625,7 @@ void Client::unserialize(std::istream &istr) {
                     auto* sphere = new Sphere(this, &_scene);
                     sphere->_serverTime = serverTime;
                     sphere->unserialize(istr);
-                    sphere->updateBulletFromData();
+                    //sphere->updateBulletFromData();
                     addObject(sphere, id);
                     break;
                 }
@@ -675,6 +676,35 @@ uint64_t Client::getTime() {
 void Client::interpolate() {
     uint64_t renderTimestamp = _currentTimeServer - interpolationDelay;
 
+    for (auto& player : _players) {
+        if (!player) {
+            continue;
+        }
+        auto& history = player->_entityStates.history;
+
+        // Trouver les deux états encadrant renderTimestamp
+        if (history.size() < 2) continue;
+
+        for (size_t i = 0; i < history.size() - 1; ++i) {
+            const auto& stateA = history[i];
+            const auto& stateB = history[i + 1];
+
+            if (stateA.timestamp <= renderTimestamp && renderTimestamp <= stateB.timestamp) {
+                const double delta = stateB.timestamp - stateA.timestamp;
+                if (delta == 0) continue;
+                const double t = double(renderTimestamp - stateA.timestamp) / delta;
+                btVector3 interpPos = lerp(stateA.position, stateB.position, t);
+                btQuaternion interpRot = slerp(stateA.rotation, stateB.rotation, t);
+
+                // Appliquer à l'entité
+                player->_location = interpPos;
+                player->_rotation = interpRot;
+                player->updateBulletFromData();
+                break;
+            }
+        }
+    }
+
     for (auto& pair : _objects) {
         auto& object = pair.second;
         auto& history = pair.second->_entityStates.history;
@@ -687,7 +717,9 @@ void Client::interpolate() {
             const auto& stateB = history[i + 1];
 
             if (stateA.timestamp <= renderTimestamp && renderTimestamp <= stateB.timestamp) {
-                uint64_t t = (renderTimestamp - stateA.timestamp) / (stateB.timestamp - stateA.timestamp);
+                const double delta = stateB.timestamp - stateA.timestamp;
+                if (delta == 0) continue;
+                const double t = double(renderTimestamp - stateA.timestamp) / delta;
                 btVector3 interpPos = lerp(stateA.position, stateB.position, t);
                 btQuaternion interpRot = slerp(stateA.rotation, stateB.rotation, t);
 
@@ -700,6 +732,7 @@ void Client::interpolate() {
         }
     }
 }
+
 void Client::reset() {
     Engine::reset();
     _id = 5;

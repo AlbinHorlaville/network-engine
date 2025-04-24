@@ -35,9 +35,9 @@ Server::Server(const Arguments &arguments): Engine(arguments) {
     addObject(ground);
 
     /* Create boxes with random colors */
-    for (Int i = 0; i != 7; ++i) {
-        for (Int j = 0; j != 7; ++j) {
-            for (Int k = 0; k != 7; ++k) {
+    for (Int i = 0; i != 5; ++i) {
+        for (Int j = 0; j != 5; ++j) {
+            for (Int k = 0; k != 5; ++k) {
                 Color3 color = Color3(1.0f, 1.0f, 1.0f);
                 auto *o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 3.f, color);
                 o->_rigidBody->translate({i - 2.0f, j + 2.0f, k - 2.0f});
@@ -231,16 +231,13 @@ void Server::networkUpdate() {
             default: break;
         }
     }
-    sendSnapshot();
     enet_packet_destroy(event.packet);
-    /*
     snapshotTimer += deltaTime.get();
 
-    if(snapshotTimer >= 0.1f) {
+    if(snapshotTimer >= 0.1f) { // J'envoie la snapshot toutes les 100 ms
         sendSnapshot();
         snapshotTimer = 0.0f;
     }
-    */
 }
 
 void Server::handleConnect(const ENetEvent &event) {
@@ -521,9 +518,9 @@ void Server::reset() {
     addObject(ground);
 
     /* Create boxes with random colors */
-    for (Int i = 0; i != 7; ++i) {
-        for (Int j = 0; j != 7; ++j) {
-            for (Int k = 0; k != 7; ++k) {
+    for (Int i = 0; i != 5; ++i) {
+        for (Int j = 0; j != 5; ++j) {
+            for (Int k = 0; k != 5; ++k) {
                 Color3 color = Color3(1.0f, 1.0f, 1.0f);
                 auto *o = new Cube(this, &_scene, {0.5f, 0.5f, 0.5f}, 3.f, color);
                 o->_rigidBody->translate({i - 2.0f, j + 2.0f, k - 2.0f});
