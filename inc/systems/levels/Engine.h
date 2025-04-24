@@ -5,6 +5,7 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+#include <array>
 #include <btBulletDynamicsCommon.h>
 #include <Corrade/Containers/GrowableArray.h>
 #include <Corrade/Containers/Optional.h>
@@ -101,7 +102,7 @@ class Engine: public Platform::Application, public Serializable {
     PhysicsWorld* _pWorld;
     ProjectileManager* _pProjectileManager;
 
-    Scene3D _scene;
+    Scene3D _scene{};
     std::array<Player*, 4> _players = { nullptr };
     FPSHandler fps_handler;
     DeltaTimer deltaTime;

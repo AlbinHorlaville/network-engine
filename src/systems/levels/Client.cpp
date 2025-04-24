@@ -6,6 +6,9 @@
 #include "entities/primitives/Cube.h"
 #include <enet6/enet.h>
 #include "systems/levels/Client.h"
+
+#include <algorithm>
+
 #include "systems/network/PackageType.h"
 #include <entities/primitives/Sphere.h>
 #include <imgui.h>

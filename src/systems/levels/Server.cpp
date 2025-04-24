@@ -9,6 +9,7 @@
 #include <Magnum/ImGuiIntegration/Context.hpp>
 #include "systems/levels/Server.h"
 
+#include <algorithm>
 #include <Magnum/GL/DefaultFramebuffer.h>
 #include <sys/stat.h>
 #include <systems/network/PackageType.h>
