@@ -49,7 +49,7 @@ namespace GameApi.Services
             if (stats.CubesPushed >= 50 && !alreadyUnlocked.ContainsKey("Cube_Killer"))
                 await AddPlayerAchievementAsync(username, "Cube_Killer", "Why would you do that ? They are so innocent.");
 
-            if (stats.MaxCubesPushedInOneGame >= 150 && !alreadyUnlocked.ContainsKey("Smurf"))
+            if (stats.MaxCubesPushedInOneGame >= 90 && !alreadyUnlocked.ContainsKey("Smurf"))
                 await AddPlayerAchievementAsync(username, "Smurf", "You owned them that game.");
         }
 

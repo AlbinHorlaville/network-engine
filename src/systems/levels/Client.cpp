@@ -196,6 +196,7 @@ void Client::handleReceive(const ENetEvent &event) {
                     _unlockedThisGame[pair.first] = pair.second;
                 }
             }
+            _achievements = newAchievementsMap;
             break;
         }
         default: break;
