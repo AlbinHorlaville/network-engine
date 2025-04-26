@@ -216,5 +216,10 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Allow release folders with their contents
+!release_windows/**
+!release_linux/**
+!release_macOS/**
+
 # End of https://www.toptal.com/developers/gitignore/api/cmake,clion+all,linux,macos,windows,c++
 

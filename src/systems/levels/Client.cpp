@@ -338,6 +338,7 @@ void Client::drawLoginWindow() {
                 std::memset(usernameLogin, 0, sizeof(usernameLogin));
                 std::memset(passwordLogin, 0, sizeof(passwordLogin));
                 _loginProblem = false;
+                _achievements = _httpClient.getDetailedAchievements();
             } else {
                 _loginProblem = true;
             }
